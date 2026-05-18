@@ -6,13 +6,11 @@ Existe una brecha significativa en la educación secundaria: los escolares carec
 ## 2. La Solución
 STEM Link es una plataforma web que conecta a escolares de secundaria con mentores universitarios para democratizar el aprendizaje STEM.  
 
-Para destacar en el mercado y en la evaluación del curso (innovación), el MVP pivota de un directorio tradicional a un sistema impulsado por Inteligencia de Datos Ligera:
-
-- **Búsqueda Semántica (Matchmaking):** En lugar de filtros rígidos, los escolares buscan ayuda usando lenguaje natural (ej. "Me gustan los videojuegos y quiero aprender a programar, pero me cuesta la lógica"). El sistema utiliza modelos de embeddings para analizar la intención del texto y emparejar al estudiante con el mentor universitario cuyas habilidades técnicas y perfil se alineen mejor, calculando la Similitud del Coseno.
+- **Búsqueda y Emparejamiento (Matchmaking):** Los escolares pueden buscar ayuda basada en sus áreas de interés y necesidades de aprendizaje. El sistema permite filtrar y emparejar al estudiante con el mentor universitario cuyas habilidades técnicas y perfil se alineen mejor con sus requerimientos.
 - **Gestión Ágil de Reservas:** Se elimina la complejidad de pasarelas de pago y automatización de videollamadas. El sistema se centra en la disponibilidad mediante "plantillas semanales" y utiliza enlaces estáticos de videollamada proporcionados por el mentor, asegurando la viabilidad del desarrollo en un ciclo académico de 14 semanas.
 
 ## 3. Stack Tecnológico
-El proyecto utilizará una arquitectura moderna, separando el núcleo transaccional del motor de inteligencia artificial.
+El proyecto utilizará una arquitectura moderna centrada en un núcleo transaccional robusto.
 
 ### Backend Core (Transaccional & Seguridad):
 - **Lenguaje & Framework:** Java 21 con Spring Boot.
@@ -21,13 +19,8 @@ El proyecto utilizará una arquitectura moderna, separando el núcleo transaccio
 - **Testing:** JUnit y Mockito para pruebas unitarias de la lógica de negocio y reservas.
 - **Utilidades:** ModelMapper (para transferencia de DTOs) e Hibernate.
 
-### Motor de Matchmaking AI:
-- **Lenguaje & Framework:** Microservicio ligero en Python utilizando FastAPI.
-- **Librería IA:** sentence-transformers (Hugging Face) utilizando un modelo pre-entrenado multilingüe (ej. `paraphrase-multilingual-MiniLM-L12-v2`) para generar los vectores a partir del texto.
-
 ### Base de Datos:
 - **Motor:** PostgreSQL.
-- **Extensión Clave:** `pgvector`, que permite almacenar los vectores generados por Python directamente en columnas de la base de datos y realizar las consultas de similitud semántica de forma nativa e hiperrápida mediante SQL.
 
 ## 4. Arquitectura de Entidades (Modelo de Datos Base)
 El esquema relacional está diseñado para soportar roles fluidos y búsquedas eficientes de disponibilidad, cumpliendo con la exigencia de complejidad y múltiples relaciones de la rúbrica.
@@ -40,9 +33,9 @@ El esquema relacional está diseñado para soportar roles fluidos y búsquedas e
   - Relación `@OneToOne` con User. Se instancia solo si el usuario tiene el rol de mentor.
   - Encapsula datos públicos: biografía, enlace estático de videollamada (Meet/Zoom), y métricas de impacto.
 
-- **HabilidadTecnica (Tags Semánticos):**
+- **HabilidadTecnica (Tags de Conocimiento):**
   - Relación `@ManyToMany` con MentorProfile.
-  - Catálogo de temas (Python, C++, Álgebra, etc.). Los nombres y descripciones de estas habilidades, junto con la biografía del mentor, se vectorizan para alimentar el motor de búsqueda semántica.
+  - Catálogo de temas (Python, C++, Álgebra, etc.). Los nombres y descripciones de estas habilidades permiten categorizar el perfil del mentor y facilitar las búsquedas de los estudiantes.
 
 - **BloqueDisponibilidad (Plantilla de Agenda):**
   - Relación `@ManyToOne` con MentorProfile.
