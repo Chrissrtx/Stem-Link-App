@@ -104,11 +104,13 @@ El diseño del modelo de datos de STEM Link se centra en la flexibilidad de role
 3.  **HabilidadTecnica:** Catálogo de conocimientos (ej. "Álgebra Lineal", "C++"). Un mentor puede tener múltiples habilidades y una habilidad puede pertenecer a muchos mentores.
 4.  **BloqueDisponibilidad:** Define los rangos horarios recurrentes (DayOfWeek, StartTime, EndTime) en los que un mentor está libre.
 5.  **Reserva:** Representa la cita programada en una fecha específica. Vincula a un estudiante con un mentor y un bloque horario.
-6.  **SesionMentoria:** Contiene los detalles específicos de lo tratado en la sesión: tema, notas y recursos compartidos.
-7.  **FeedbackSesion:** Evaluación de la sesión (estrellas y comentarios), vinculada a la sesión de mentoría.
+7.  **SesionMentoria:** Contiene los detalles específicos de lo tratado en la sesión: tema, notas y recursos compartidos.
+8.  **FeedbackSesion:** Evaluación de la sesión (estrellas y comentarios), vinculada a la sesión de mentoría.
+9.  **Notification:** Almacena alertas para los usuarios (título, mensaje, estado de lectura) disparadas por eventos del sistema.
 
 ### Relaciones
 *   **User 1:1 MentorProfile:** Un usuario puede tener opcionalmente un perfil de mentor.
+*   **User 1:N Notification:** Un usuario recibe múltiples notificaciones a lo largo del tiempo.
 *   **MentorProfile N:M HabilidadTecnica:** Los mentores se especializan en diversas áreas.
 *   **MentorProfile 1:N BloqueDisponibilidad:** Un mentor gestiona su agenda mediante múltiples bloques.
 *   **Student (User) 1:N Reserva / MentorProfile 1:N Reserva:** Las reservas actúan como el nexo transaccional.
@@ -146,9 +148,11 @@ Se ha implementado un `GlobalExceptionHandler` utilizando la anotación `@Contro
 
 ## Eventos y Asincronía
 
-La plataforma utiliza un modelo de eventos para desacoplar procesos críticos.
-*   **Confirmación de Reservas:** Cuando un mentor confirma una reserva, se dispara un evento asíncrono que envía una notificación por correo electrónico al estudiante.
-*   **Procesamiento Asíncrono:** El uso de `@Async` permite que el envío de correos o notificaciones no bloquee el hilo principal de la ejecución, mejorando drásticamente el tiempo de respuesta de la API.
+La plataforma utiliza un modelo de eventos de aplicación para desacoplar procesos críticos y mejorar la experiencia de usuario.
+*   **MentorshipSessionCreatedEvent:** Se dispara automáticamente cuando un estudiante solicita una reserva. Este evento transporta la información de la reserva hacia los oyentes interesados.
+*   **Notificaciones In-App:** Un `NotificationListener` escucha el evento anterior de forma asíncrona para generar un registro de notificación en la base de datos del mentor, permitiéndole ver la solicitud en su centro de alertas.
+*   **Confirmación de Reservas:** Al confirmar una sesión, se dispara un proceso que notifica al estudiante.
+*   **Procesamiento Asíncrono:** El uso de `@Async` permite que la generación de notificaciones y el futuro envío de correos no bloqueen el hilo principal de ejecución, optimizando los tiempos de respuesta de los endpoints de reserva.
 
 ---
 
