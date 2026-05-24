@@ -3,7 +3,7 @@
 **Curso:** CS 2031 Desarrollo Basado en Plataforma  
 **Institución:** UTEC - Universidad de Ingeniería y Tecnología  
 **Integrantes:**  
-* [Nombre del Integrante 1]
+* Christian Estefano Estrada Fiestas 202420047
 * [Nombre del Integrante 2]
 * [Nombre del Integrante 3]
 
