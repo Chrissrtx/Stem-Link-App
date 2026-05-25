@@ -4,7 +4,7 @@
 **Institución:** UTEC - Universidad de Ingeniería y Tecnología  
 **Integrantes:**  
 * Christian Estefano Estrada Fiestas 202420047
-* [Nombre del Integrante 2]
+* Geremid Mickell Flores Alva 202410284
 * [Nombre del Integrante 3]
 
 ---
