@@ -82,6 +82,7 @@ public class BookingService {
         booking.setStartTime(block.getStartTime());
         booking.setEndTime(block.getEndTime());
         booking.setStatus(BookingStatus.PENDING);
+        booking.setCreatedAt(java.time.LocalDateTime.now());
 
         Booking saved = bookingRepository.save(booking);
         eventPublisher.publishEvent(new MentorshipSessionCreatedEvent(this, saved));
@@ -103,7 +104,6 @@ public class BookingService {
                 if (booking.getStatus() != BookingStatus.PENDING)
                     throw new InvalidOperationException("Solo se pueden confirmar reservas en estado PENDING");
 
-                // Email de confirmación al estudiante
                 java.util.Map<String, Object> vars = new java.util.HashMap<>();
                 vars.put("userName", booking.getStudent().getName());
                 vars.put("mentorName", booking.getMentor().getUser().getName());
@@ -118,7 +118,6 @@ public class BookingService {
                 if (booking.getStatus() == BookingStatus.CANCELLED)
                     throw new InvalidOperationException("La reserva ya está cancelada");
 
-                // Email de cancelación a la otra parte
                 String recipientEmail = userEmail.equals(mentorEmail) ? studentEmail : mentorEmail;
                 java.util.Map<String, Object> vars = new java.util.HashMap<>();
                 vars.put("date", booking.getDate().toString());

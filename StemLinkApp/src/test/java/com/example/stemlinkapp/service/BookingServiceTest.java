@@ -1,4 +1,4 @@
-package com.example.stemlinkapp;
+package com.example.stemlinkapp.service;
 
 import com.example.stemlinkapp.domain.*;
 import com.example.stemlinkapp.dto.BookingRequest;
@@ -9,7 +9,6 @@ import com.example.stemlinkapp.repository.AvailabilityBlockRepository;
 import com.example.stemlinkapp.repository.BookingRepository;
 import com.example.stemlinkapp.repository.MentorProfileRepository;
 import com.example.stemlinkapp.repository.UserRepository;
-import com.example.stemlinkapp.service.BookingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

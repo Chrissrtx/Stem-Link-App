@@ -23,6 +23,8 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
 
+    private java.time.LocalDateTime createdAt;
+
     @ManyToOne
     @JoinColumn(name = "student_id")
     private User student;
