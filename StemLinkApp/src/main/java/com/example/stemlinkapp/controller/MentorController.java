@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api")
 public class MentorController {
@@ -23,18 +25,14 @@ public class MentorController {
     }
 
     @PatchMapping("/users/me/profile")
-    public ResponseEntity<MentorProfileResponse> updateMentorProfile(@RequestBody MentorProfileRequest request) {
-        // Assuming user ID can be retrieved from security context
-        Long userId = 1L; // Placeholder
-        MentorProfileResponse response = mentorService.updateMentorProfile(userId, request);
+    public ResponseEntity<MentorProfileResponse> updateMentorProfile(@RequestBody MentorProfileRequest request, Principal principal) {
+        MentorProfileResponse response = mentorService.updateMentorProfile(principal.getName(), request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/users/me/tags")
-    public ResponseEntity<MentorProfileResponse> associateTechnicalSkills(@RequestBody List<Long> skillIds) {
-        // Assuming user ID can be retrieved from security context
-        Long userId = 1L; // Placeholder
-        MentorProfileResponse response = mentorService.associateSkillsToMentor(userId, skillIds);
+    public ResponseEntity<MentorProfileResponse> associateTechnicalSkills(@RequestBody List<Long> skillIds, Principal principal) {
+        MentorProfileResponse response = mentorService.associateSkillsToMentor(principal.getName(), skillIds);
         return ResponseEntity.ok(response);
     }
 

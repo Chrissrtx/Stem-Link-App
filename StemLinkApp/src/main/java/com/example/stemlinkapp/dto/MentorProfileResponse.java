@@ -8,6 +8,7 @@ public class MentorProfileResponse {
     private Long id;
     private String name;
     private String bio;
-    private String socialMediaLink;
+    private String videoCallUrl;
+    private String linkedinUrl;
     private List<TechnicalSkillDTO> skills;
 }

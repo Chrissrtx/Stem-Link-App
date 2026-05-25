@@ -17,6 +17,7 @@ public class MentorProfile {
 
     private String bio;
     private String videoCallUrl;
+    private String linkedinUrl;
     private String impactMetrics;
 
     @OneToOne
