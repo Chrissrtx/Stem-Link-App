@@ -2,15 +2,30 @@
 
 **Curso:** CS 2031 Desarrollo Basado en Plataforma  
 **Institución:** UTEC - Universidad de Ingeniería y Tecnología  
-**Integrantes:**  
+
 ## Integrantes
 
 | Nombre Completo | Código | GitHub User |
 | :--- | :---: | :--- |
 | Christian Estefano Estrada Fiestas | 202420047 | [Chrissrtx](https://github.com/Chrissrtx) |
 | Geremid Mickell Flores Alva | 202410284 | [Geremid](https://github.com/Geremid) |
-| Osmar Vilchez Aguirre  | 202510122 | [Osomar1705](https://github.com/Osomar1705) |
-| Rodolfo Elard Huaroc Enciso  | 202220307 | [rodolfoextremo69](https://github.com/rodolfoextremo69) |
+| Osmar Fabian | 202210137 | [osmarfabian](https://github.com/osmarfabian) |
+
+---
+
+## Índice
+
+1. [Introducción](#1-introducción)
+2. [Identificación del Problema](#2-identificación-del-problema)
+3. [Descripción de la Solución](#3-descripción-de-la-solución)
+4. [Modelo de Entidades](#4-modelo-de-entidades)
+5. [Instrucciones de Ejecución](#5-instrucciones-de-ejecución)
+6. [Testing y Manejo de Errores](#6-testing-y-manejo-de-errores)
+7. [Medidas de Seguridad Implementadas](#7-medidas-de-seguridad-implementadas)
+8. [GitHub & Management](#8-github--management)
+9. [Trabajo a Futuro](#9-trabajo-a-futuro)
+10. [Conclusión](#10-conclusión)
+11. [Referencias](#11-referencias)
 
 ---
 
@@ -32,7 +47,7 @@ STEM Link aborda esta problemática eliminando las barreras administrativas y co
 * **Perfiles Profesionales:** Los mentores cuentan con perfiles personalizables que incluyen biografía, enlaces a LinkedIn y métricas de impacto. La creación del perfil es automática tras el registro.
 * **Motor de Búsqueda Avanzado:** Filtrado de mentores por nombre y habilidades técnicas (tags) utilizando consultas JPQL optimizadas y seguras.
 * **Gestión de Disponibilidad y Reservas:** Sistema transaccional para que mentores definan sus horarios y alumnos soliciten citas sin conflictos.
-* **Notificaciones Multi-canal:** Alertas in-app en tiempo real y correos electrónicos automáticos (Bienvenida, Solicitud, Confirmación y Cancelación).
+* **Notificaciones Multi-canal:** Alertas in-app en tiempo real y correos electrónicos automáticos (Bienvenida, Solicitud, Confirmación y Cancelación) procesados de forma asíncrona.
 * **Automatización (Cron Jobs):** Cancelación automática de reservas pendientes tras 48 horas de inactividad para optimizar la agenda de los mentores.
 * **Módulo de Feedback:** Sistema de reseñas post-sesión para medir la calidad de la mentoría y el impacto generado.
 
@@ -53,17 +68,61 @@ El sistema se basa en un modelo relacional sólido:
 * **Booking (1:1) MentorshipSession:** Ejecución física de la reserva.
 * **MentorshipSession (1:1) SessionFeedback:** Evaluación de impacto del alumno.
 
-## 5. Medidas de Seguridad Implementadas
+## 5. Instrucciones de Ejecución
+
+### Requisitos Previos
+* Docker y Docker Compose instalados.
+* Java 21 (para ejecución local sin Docker).
+* Maven (opcional, incluido vía `mvnw`).
+
+### Pasos para iniciar con Docker
+1. Clonar el repositorio.
+2. Navegar a la carpeta `Stem Link App/StemLinkApp`.
+3. Ejecutar el comando:
+   ```bash
+   docker-compose up --build
+   ```
+4. La API estará disponible en `http://localhost:8080`.
+5. La base de datos PostgreSQL estará accesible en el puerto `5433` (según configuración del compose).
+
+### Configuración de Variables de Entorno
+Asegúrese de configurar el archivo `.env` con las credenciales de Mailtrap para las notificaciones por email y los datos de conexión a la base de datos.
+
+## 6. Testing y Manejo de Errores
+
+### Detalle de Testing
+Se implementó una estrategia de pruebas en tres capas para garantizar la estabilidad del sistema:
+* **Pruebas de Repositorio:** Se validaron las consultas personalizadas JPQL. **Detección clave:** Se logró comprobar que el filtrado por tags era insensible a mayúsculas/minúsculas y que las relaciones N:M se persistían correctamente.
+* **Pruebas de Servicio (Mockito):** Se simularon escenarios de negocio complejos. **Detección clave:** Se identificaron y corrigieron fallos en la lógica de creación de perfiles automáticos y se validó que el envío de correos no bloqueara el hilo principal (asincronía).
+* **Pruebas de Controlador (MockMvc):** Se verificaron los endpoints y la seguridad. **Detección clave:** Se confirmó que los usuarios sin autenticación no podían acceder a datos privados de otros usuarios (ownership checks).
+
+### Manejo de Errores
+Se utiliza un `GlobalExceptionHandler` con `@RestControllerAdvice` para centralizar la gestión de errores, devolviendo respuestas JSON estandarizadas. Se manejan excepciones personalizadas para casos de negocio como emails duplicados, recursos no encontrados, conflictos de horario y accesos no autorizados.
+
+## 7. Medidas de Seguridad Implementadas
 * **Cifrado de Datos:** Uso de BCrypt para el almacenamiento de contraseñas.
 * **Validación de Complejidad:** Reglas estrictas para contraseñas (Mayúsculas, números, símbolos).
 * **Control de Acceso Granular (RBAC):** Restricción de endpoints basada en roles (ej. solo mentores gestionan disponibilidad).
 * **Protección contra Inyecciones:** Consultas parametrizadas en todos los repositorios (JPQL).
 * **Privacidad (Ownership Checks):** Validaciones a nivel de servicio para asegurar que un usuario solo acceda y modifique sus propios datos (Notificaciones, Perfiles).
 
-## 6. GitHub & Management
+## 8. GitHub & Management
 * **Kanban:** Uso de GitHub Projects para el seguimiento de tareas en tiempo real.
 * **Workflow de Git:** Implementación de ramas funcionales (`feature/`) y fusión mediante Pull Requests.
 * **CI/CD:** Pipeline automatizado en GitHub Actions para ejecución de pruebas unitarias e integración en cada push.
 
-## 7. Conclusión
+## 9. Trabajo a Futuro
+* **Motor de Búsqueda Semántica:** Implementar búsqueda avanzada utilizando **Embeddings e Inteligencia Artificial** para emparejar alumnos con mentores basándose en lenguaje natural.
+* **Integración con Google Calendar:** Sincronización automática de las reservas aceptadas con el calendario del mentor y el alumno.
+* **Sumarios de Sesión con IA:** Generación automática de resúmenes y puntos clave de la mentoría a partir de las notas de la sesión utilizando modelos de lenguaje (LLM).
+* **Integración con Pasarelas de Pago:** Soporte para servicios premium o donaciones voluntarias.
+
+## 10. Conclusión
 El desarrollo de STEM Link ha permitido integrar una arquitectura backend moderna, escalable y segura. Se ha logrado no solo cumplir con los requisitos funcionales de un sistema de mentoría, sino también añadir capas de automatización y comunicación profesional que garantizan una experiencia de usuario fluida. El proyecto demuestra la potencia de Spring Boot para manejar procesos complejos como tareas programadas y correos asíncronos bajo un diseño de código limpio.
+
+## 11. Referencias
+* Documentación de Spring Boot: [https://spring.io/projects/spring-boot](https://spring.io/projects/spring-boot)
+* Thymeleaf Templates: [https://www.thymeleaf.org/](https://www.thymeleaf.org/)
+* Spring Security Reference: [https://docs.spring.io/spring-security/reference/](https://docs.spring.io/spring-security/reference/)
+* Hibernate ORM Docs: [https://hibernate.org/orm/documentation/](https://hibernate.org/orm/documentation/)
+* Docker Compose Specification: [https://docs.docker.com/compose/](https://docs.docker.com/compose/)
