@@ -29,8 +29,9 @@ public class MentorshipSessionController {
     @PostMapping("/{id}/feedback")
     public ResponseEntity<Void> leaveFeedback(
             @PathVariable Long id, 
-            @Valid @RequestBody SessionFeedbackDTO feedbackDTO) {
-        mentorshipSessionService.submitFeedback(id, feedbackDTO);
+            @Valid @RequestBody SessionFeedbackDTO feedbackDTO,
+            Principal principal) {
+        mentorshipSessionService.submitFeedback(id, feedbackDTO, principal.getName());
         return ResponseEntity.noContent().build();
     }
 }

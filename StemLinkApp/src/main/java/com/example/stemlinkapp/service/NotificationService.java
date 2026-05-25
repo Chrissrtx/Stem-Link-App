@@ -5,6 +5,8 @@ import com.example.stemlinkapp.domain.User;
 import com.example.stemlinkapp.dto.NotificationResponse;
 import com.example.stemlinkapp.event.MentorshipSessionCreatedEvent;
 import com.example.stemlinkapp.repository.NotificationRepository;
+import com.example.stemlinkapp.exception.NotificationNotFoundException;
+import com.example.stemlinkapp.exception.UnauthorizedNotificationAccessException;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -32,9 +34,14 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markAsRead(Long id) {
+    public void markAsRead(Long id, String email) {
         Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new NotificationNotFoundException("Notification not found with ID: " + id));
+
+        if (!notification.getUser().getEmail().equals(email)) {
+            throw new UnauthorizedNotificationAccessException("You are not authorized to access this notification");
+        }
+
         notification.setRead(true);
         notificationRepository.save(notification);
     }
