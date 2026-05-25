@@ -1,5 +1,6 @@
 package com.example.stemlinkapp.service;
 
+import com.example.stemlinkapp.domain.MentorProfile;
 import com.example.stemlinkapp.domain.User;
 import com.example.stemlinkapp.dto.AuthResponse;
 import com.example.stemlinkapp.dto.LoginRequest;
@@ -7,6 +8,7 @@ import com.example.stemlinkapp.dto.RegisterRequest;
 import com.example.stemlinkapp.dto.UserResponse;
 import com.example.stemlinkapp.exception.EmailAlreadyExistsException;
 import com.example.stemlinkapp.exception.UserNotFoundException;
+import com.example.stemlinkapp.repository.MentorProfileRepository;
 import com.example.stemlinkapp.repository.UserRepository;
 import com.example.stemlinkapp.security.JwtService;
 import org.modelmapper.ModelMapper;
@@ -16,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -26,6 +29,7 @@ public class UserService {
     private static final Set<String> ALLOWED_ROLES = Set.of("STUDENT", "MENTOR");
 
     private final UserRepository userRepository;
+    private final MentorProfileRepository mentorProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -34,6 +38,7 @@ public class UserService {
 
     public UserService(
             UserRepository userRepository,
+            MentorProfileRepository mentorProfileRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
             JwtService jwtService,
@@ -41,6 +46,7 @@ public class UserService {
             EmailService emailService
     ) {
         this.userRepository = userRepository;
+        this.mentorProfileRepository = mentorProfileRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
@@ -48,6 +54,7 @@ public class UserService {
         this.emailService = emailService;
     }
 
+    @Transactional
     public UserResponse register(RegisterRequest request) {
         String email = normalizeEmail(request.getEmail());
 
@@ -65,7 +72,14 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
 
-        // Enviar email de bienvenida de forma asíncrona
+        if ("MENTOR".equals(role)) {
+            MentorProfile mentorProfile = new MentorProfile();
+            mentorProfile.setUser(savedUser);
+            mentorProfile.setBio("¡Hola! Soy un nuevo mentor en STEM Link.");
+            mentorProfile.setImpactMetrics("Nuevas sesiones por realizar");
+            mentorProfileRepository.save(mentorProfile);
+        }
+
         java.util.Map<String, Object> variables = new java.util.HashMap<>();
         variables.put("userName", savedUser.getName());
         emailService.sendHtmlMessage(savedUser.getEmail(), "¡Bienvenido a STEM Link!", "welcome.html", variables);
