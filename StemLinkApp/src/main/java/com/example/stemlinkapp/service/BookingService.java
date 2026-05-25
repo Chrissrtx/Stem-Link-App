@@ -25,18 +25,21 @@ public class BookingService {
     private final MentorProfileRepository mentorProfileRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final EmailService emailService;
 
     public BookingService(
             BookingRepository bookingRepository,
             AvailabilityBlockRepository availabilityBlockRepository,
             MentorProfileRepository mentorProfileRepository,
             UserRepository userRepository,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.availabilityBlockRepository = availabilityBlockRepository;
         this.mentorProfileRepository = mentorProfileRepository;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -99,12 +102,28 @@ public class BookingService {
                     throw new UnauthorizedException("Solo el mentor puede confirmar una reserva");
                 if (booking.getStatus() != BookingStatus.PENDING)
                     throw new InvalidOperationException("Solo se pueden confirmar reservas en estado PENDING");
+
+                // Email de confirmación al estudiante
+                java.util.Map<String, Object> vars = new java.util.HashMap<>();
+                vars.put("userName", booking.getStudent().getName());
+                vars.put("mentorName", booking.getMentor().getUser().getName());
+                vars.put("date", booking.getDate().toString());
+                vars.put("startTime", booking.getStartTime().toString());
+                vars.put("endTime", booking.getEndTime().toString());
+                emailService.sendHtmlMessage(studentEmail, "¡Reserva Confirmada! - STEM Link", "booking-confirmed.html", vars);
             }
             case CANCELLED -> {
                 if (!userEmail.equals(mentorEmail) && !userEmail.equals(studentEmail))
                     throw new UnauthorizedException("Solo el mentor o estudiante pueden cancelar");
                 if (booking.getStatus() == BookingStatus.CANCELLED)
                     throw new InvalidOperationException("La reserva ya está cancelada");
+
+                // Email de cancelación a la otra parte
+                String recipientEmail = userEmail.equals(mentorEmail) ? studentEmail : mentorEmail;
+                java.util.Map<String, Object> vars = new java.util.HashMap<>();
+                vars.put("date", booking.getDate().toString());
+                vars.put("startTime", booking.getStartTime().toString());
+                emailService.sendHtmlMessage(recipientEmail, "Sesión Cancelada - STEM Link", "booking-cancelled.html", vars);
             }
             default -> throw new InvalidOperationException("Cambio de estado no permitido: " + request.getStatus());
         }

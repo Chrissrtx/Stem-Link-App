@@ -30,19 +30,22 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final ModelMapper modelMapper;
+    private final EmailService emailService;
 
     public UserService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
             JwtService jwtService,
-            ModelMapper modelMapper
+            ModelMapper modelMapper,
+            EmailService emailService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.modelMapper = modelMapper;
+        this.emailService = emailService;
     }
 
     public UserResponse register(RegisterRequest request) {
@@ -61,6 +64,11 @@ public class UserService {
         user.setRoles(List.of(role));
 
         User savedUser = userRepository.save(user);
+
+        // Enviar email de bienvenida de forma asíncrona
+        java.util.Map<String, Object> variables = new java.util.HashMap<>();
+        variables.put("userName", savedUser.getName());
+        emailService.sendHtmlMessage(savedUser.getEmail(), "¡Bienvenido a STEM Link!", "welcome.html", variables);
 
         return toUserResponse(savedUser);
     }

@@ -28,7 +28,7 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public List<NotificationResponse> getMyNotifications(String email) {
-        return notificationRepository.findAll().stream()
+        return notificationRepository.findByUserEmailOrderByCreatedAtDesc(email).stream()
                 .map(n -> modelMapper.map(n, NotificationResponse.class))
                 .collect(Collectors.toList());
     }

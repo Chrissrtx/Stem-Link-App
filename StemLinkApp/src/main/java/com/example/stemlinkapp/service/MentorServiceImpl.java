@@ -1,96 +1,92 @@
 package com.example.stemlinkapp.service;
 
+import com.example.stemlinkapp.domain.MentorProfile;
+import com.example.stemlinkapp.domain.TechnicalSkill;
 import com.example.stemlinkapp.dto.MentorProfileRequest;
 import com.example.stemlinkapp.dto.MentorProfileResponse;
-import com.example.stemlinkapp.dto.TechnicalSkillDTO;
+import com.example.stemlinkapp.exception.ResourceNotFoundException;
+import com.example.stemlinkapp.repository.MentorProfileRepository;
+import com.example.stemlinkapp.repository.TechnicalSkillRepository;
+import com.example.stemlinkapp.repository.UserRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class MentorServiceImpl implements MentorService {
 
-    // Mock data for demonstration purposes
-    private final List<MentorProfileResponse> mockMentors = new ArrayList<>(Arrays.asList(
-            new MentorProfileResponse() {{
-                setId(1L);
-                setName("Alice Smith");
-                setBio("Experienced software engineer with a passion for mentoring.");
-                setSocialMediaLink("linkedin.com/in/alicesmith");
-                setSkills(Arrays.asList(
-                        new TechnicalSkillDTO() {{ setId(1L); setName("Java"); }},
-                        new TechnicalSkillDTO() {{ setId(2L); setName("Spring Boot"); }}
-                ));
-            }},
-            new MentorProfileResponse() {{
-                setId(2L);
-                setName("Bob Johnson");
-                setBio("Data scientist specializing in machine learning.");
-                setSocialMediaLink("github.com/bobj");
-                setSkills(Arrays.asList(
-                        new TechnicalSkillDTO() {{ setId(3L); setName("Python"); }},
-                        new TechnicalSkillDTO() {{ setId(4L); setName("Machine Learning"); }}
-                ));
-            }}
-    ));
+    private final MentorProfileRepository mentorProfileRepository;
+    private final TechnicalSkillRepository technicalSkillRepository;
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
-    // In a real application, this would interact with a repository
-    private MentorProfileResponse findMentorById(Long id) {
-        return mockMentors.stream().filter(m -> m.getId().equals(id)).findFirst().orElse(null);
+    public MentorServiceImpl(MentorProfileRepository mentorProfileRepository,
+                             TechnicalSkillRepository technicalSkillRepository,
+                             UserRepository userRepository,
+                             ModelMapper modelMapper) {
+        this.mentorProfileRepository = mentorProfileRepository;
+        this.technicalSkillRepository = technicalSkillRepository;
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
     }
 
     @Override
+    @Transactional
     public MentorProfileResponse updateMentorProfile(Long userId, MentorProfileRequest request) {
-        // In a real app, fetch mentor entity by userId, update, save, and then map to DTO
-        MentorProfileResponse mentor = findMentorById(userId);
-        if (mentor != null) {
-            mentor.setBio(request.getBio());
-            mentor.setSocialMediaLink(request.getSocialMediaLink());
-            // For mock data, we just return the updated mock object
-            return mentor;
-        }
-        // Handle not found case, e.g., throw an exception
-        return null;
+        MentorProfile mentor = mentorProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Perfil de mentor no encontrado para el usuario: " + userId));
+        
+        mentor.setBio(request.getBio());
+        // Map other fields as necessary from request
+        return modelMapper.map(mentorProfileRepository.save(mentor), MentorProfileResponse.class);
     }
 
     @Override
+    @Transactional
     public MentorProfileResponse associateSkillsToMentor(Long userId, List<Long> skillIds) {
-        // In a real app, fetch mentor entity, fetch skill entities, associate, save, and map
-        MentorProfileResponse mentor = findMentorById(userId);
-        if (mentor != null) {
-            // Mocking skill association
-            List<TechnicalSkillDTO> newSkills = skillIds.stream()
-                    .map(id -> {
-                        // In a real app, fetch skill from TechnicalSkillService/Repository
-                        return new TechnicalSkillDTO() {{ setId(id); setName("Skill " + id); }};
-                    })
-                    .collect(Collectors.toList());
-            mentor.setSkills(newSkills);
-            return mentor;
-        }
-        return null;
+        MentorProfile mentor = mentorProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Perfil de mentor no encontrado"));
+        
+        List<TechnicalSkill> skills = technicalSkillRepository.findAllById(skillIds);
+        mentor.setSkills(skills);
+        
+        return modelMapper.map(mentorProfileRepository.save(mentor), MentorProfileResponse.class);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MentorProfileResponse> filterMentors(String name, List<Long> skillIds) {
-        return mockMentors.stream()
-                .filter(mentor -> {
-                    boolean nameMatches = (name == null || name.isEmpty()) ||
-                                         mentor.getName().toLowerCase().contains(name.toLowerCase());
-                    boolean skillsMatch = (skillIds == null || skillIds.isEmpty()) ||
-                                          mentor.getSkills().stream()
-                                                .anyMatch(skill -> skillIds.contains(skill.getId()));
-                    return nameMatches && skillsMatch;
-                })
+        List<MentorProfile> mentors;
+        
+        if (skillIds != null && !skillIds.isEmpty()) {
+            // Since our repo uses skill names for the custom query, let's adapt or use a name-based filter
+            // For now, let's assume we filter by ID or fetch skill names first
+            List<String> skillNames = technicalSkillRepository.findAllById(skillIds)
+                    .stream().map(TechnicalSkill::getName).map(String::toLowerCase).toList();
+            mentors = mentorProfileRepository.findBySkills(skillNames);
+        } else {
+            mentors = mentorProfileRepository.findAll();
+        }
+
+        if (name != null && !name.isEmpty()) {
+            mentors = mentors.stream()
+                    .filter(m -> m.getUser().getName().toLowerCase().contains(name.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        return mentors.stream()
+                .map(m -> modelMapper.map(m, MentorProfileResponse.class))
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MentorProfileResponse getMentorProfile(Long id) {
-        return findMentorById(id);
+        MentorProfile mentor = mentorProfileRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mentor no encontrado con ID: " + id));
+        return modelMapper.map(mentor, MentorProfileResponse.class);
     }
 }
