@@ -5,6 +5,7 @@ import com.example.stemlinkapp.domain.TechnicalSkill;
 import com.example.stemlinkapp.dto.MentorProfileRequest;
 import com.example.stemlinkapp.dto.MentorProfileResponse;
 import com.example.stemlinkapp.exception.ResourceNotFoundException;
+import com.example.stemlinkapp.exception.SkillNotFoundException;
 import com.example.stemlinkapp.repository.MentorProfileRepository;
 import com.example.stemlinkapp.repository.TechnicalSkillRepository;
 import com.example.stemlinkapp.repository.UserRepository;
@@ -35,24 +36,30 @@ public class MentorServiceImpl implements MentorService {
 
     @Override
     @Transactional
-    public MentorProfileResponse updateMentorProfile(Long userId, MentorProfileRequest request) {
-        MentorProfile mentor = mentorProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Perfil de mentor no encontrado para el usuario: " + userId));
+    public MentorProfileResponse updateMentorProfile(String email, MentorProfileRequest request) {
+        MentorProfile mentor = mentorProfileRepository.findByUserEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Perfil de mentor no encontrado para el usuario: " + email));
         
         mentor.setBio(request.getBio());
-        // Map other fields as necessary from request
+        mentor.setVideoCallUrl(request.getVideoCallUrl());
+        mentor.setLinkedinUrl(request.getLinkedinUrl());
+        
         return modelMapper.map(mentorProfileRepository.save(mentor), MentorProfileResponse.class);
     }
 
     @Override
     @Transactional
-    public MentorProfileResponse associateSkillsToMentor(Long userId, List<Long> skillIds) {
-        MentorProfile mentor = mentorProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Perfil de mentor no encontrado"));
+    public MentorProfileResponse associateSkillsToMentor(String email, List<Long> skillIds) {
+        MentorProfile mentor = mentorProfileRepository.findByUserEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Perfil de mentor no encontrado para el usuario: " + email));
         
         List<TechnicalSkill> skills = technicalSkillRepository.findAllById(skillIds);
-        mentor.setSkills(skills);
         
+        if (skills.size() != skillIds.size()) {
+            throw new SkillNotFoundException("Una o más habilidades no existen en el catálogo");
+        }
+        
+        mentor.setSkills(skills);
         return modelMapper.map(mentorProfileRepository.save(mentor), MentorProfileResponse.class);
     }
 
@@ -62,8 +69,6 @@ public class MentorServiceImpl implements MentorService {
         List<MentorProfile> mentors;
         
         if (skillIds != null && !skillIds.isEmpty()) {
-            // Since our repo uses skill names for the custom query, let's adapt or use a name-based filter
-            // For now, let's assume we filter by ID or fetch skill names first
             List<String> skillNames = technicalSkillRepository.findAllById(skillIds)
                     .stream().map(TechnicalSkill::getName).map(String::toLowerCase).toList();
             mentors = mentorProfileRepository.findBySkills(skillNames);

@@ -1,26 +1,29 @@
 package com.example.stemlinkapp.service;
 
+import com.example.stemlinkapp.domain.TechnicalSkill;
 import com.example.stemlinkapp.dto.TechnicalSkillDTO;
+import com.example.stemlinkapp.repository.TechnicalSkillRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TechnicalSkillServiceImpl implements TechnicalSkillService {
 
-    private final List<TechnicalSkillDTO> mockSkills = Arrays.asList(
-            new TechnicalSkillDTO() {{ setId(1L); setName("Java"); }},
-            new TechnicalSkillDTO() {{ setId(2L); setName("Spring Boot"); }},
-            new TechnicalSkillDTO() {{ setId(3L); setName("Python"); }},
-            new TechnicalSkillDTO() {{ setId(4L); setName("Machine Learning"); }},
-            new TechnicalSkillDTO() {{ setId(5L); setName("Data Science"); }},
-            new TechnicalSkillDTO() {{ setId(6L); setName("Web Development"); }},
-            new TechnicalSkillDTO() {{ setId(7L); setName("Mobile Development"); }}
-    );
+    private final TechnicalSkillRepository technicalSkillRepository;
+    private final ModelMapper modelMapper;
+
+    public TechnicalSkillServiceImpl(TechnicalSkillRepository technicalSkillRepository, ModelMapper modelMapper) {
+        this.technicalSkillRepository = technicalSkillRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public List<TechnicalSkillDTO> getAllTechnicalSkills() {
-        return mockSkills;
+        return technicalSkillRepository.findAll().stream()
+                .map(skill -> modelMapper.map(skill, TechnicalSkillDTO.class))
+                .collect(Collectors.toList());
     }
 }

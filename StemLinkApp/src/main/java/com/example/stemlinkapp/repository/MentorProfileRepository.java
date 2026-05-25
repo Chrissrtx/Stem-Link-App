@@ -12,6 +12,8 @@ public interface MentorProfileRepository extends JpaRepository<MentorProfile, Lo
 
     Optional<MentorProfile> findByUserId(Long userId);
 
+    Optional<MentorProfile> findByUserEmail(String email);
+
     @Query("""
         SELECT DISTINCT m FROM MentorProfile m 
         JOIN m.skills s 

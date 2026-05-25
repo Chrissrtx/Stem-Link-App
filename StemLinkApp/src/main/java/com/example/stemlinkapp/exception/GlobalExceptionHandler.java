@@ -81,6 +81,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    @ExceptionHandler(SkillNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleSkillNotFound(SkillNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(InvalidOperationException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidOp(InvalidOperationException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
