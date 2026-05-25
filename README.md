@@ -9,7 +9,8 @@
 | :--- | :---: | :--- |
 | Christian Estefano Estrada Fiestas | 202420047 | [Chrissrtx](https://github.com/Chrissrtx) |
 | Geremid Mickell Flores Alva | 202410284 | [Geremid](https://github.com/Geremid) |
-| Osmar Fabian | 202210137 | [osmarfabian](https://github.com/osmarfabian) |
+| Osmar Vilchez Aguirre  | 202510122 | [Osomar1705](https://github.com/Osomar1705) |
+| Rodolfo Elard Huaroc Enciso  | 202220307 | [rodolfoextremo69](https://github.com/rodolfoextremo69) |
 
 ---
 
