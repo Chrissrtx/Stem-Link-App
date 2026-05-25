@@ -113,7 +113,6 @@ Se utiliza un `GlobalExceptionHandler` con `@RestControllerAdvice` para centrali
 ## 8. GitHub & Management
 * **Kanban:** Uso de GitHub Projects para el seguimiento de tareas en tiempo real.
 * **Workflow de Git:** Implementación de ramas funcionales (`feature/`) y fusión mediante Pull Requests.
-* **CI/CD:** Pipeline automatizado en GitHub Actions para ejecución de pruebas unitarias e integración en cada push.
 
 ## 9. Trabajo a Futuro
 * **Motor de Búsqueda Semántica:** Implementar búsqueda avanzada utilizando **Embeddings e Inteligencia Artificial** para emparejar alumnos con mentores basándose en lenguaje natural.
