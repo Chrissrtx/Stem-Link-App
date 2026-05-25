@@ -126,23 +126,28 @@ El diseño del modelo de datos de STEM Link se centra en la flexibilidad de role
 *   **Pruebas de Integración:** Uso de `@SpringBootTest` para verificar la interacción correcta entre las capas de Controller y Repository.
 
 ### Manejo de Errores
-Se ha implementado un `GlobalExceptionHandler` utilizando la anotación `@ControllerAdvice`. Esto permite:
-*   Capturar excepciones personalizadas como `ResourceNotFoundException` o `UnauthorizedException`.
-*   Retornar respuestas HTTP estandarizadas con códigos de estado correctos (404, 401, 400).
-*   Validar datos de entrada automáticamente con `@Valid` y devolver mensajes de error claros al cliente.
+Se ha implementado un sistema robusto de manejo de excepciones mediante un `GlobalExceptionHandler` con `@RestControllerAdvice`. Esto garantiza que cualquier error en la lógica de negocio o validación sea capturado y devuelto al cliente con un formato JSON consistente (incluyendo timestamp, status, error y message).
+
+#### Jerarquía de Excepciones Personalizadas (Rúbrica 5.1):
+Para una gestión precisa de los estados HTTP, se definieron las siguientes excepciones:
+*   **404 Not Found:** `UserNotFoundException`, `NotificationNotFoundException`, `SessionNotFoundException`.
+*   **403 Forbidden:** `UnauthorizedNotificationAccessException` (cuando un usuario intenta leer notificaciones ajenas), `InvalidSessionParticipantException` (cuando se intenta dar feedback a una sesión en la que no participó).
+*   **409 Conflict:** `EmailAlreadyExistsException`, `FeedbackAlreadySubmittedException` (evita duplicidad de reseñas).
+*   **401 Unauthorized:** Captura automática de `BadCredentialsException`.
+*   **400 Bad Request:** `SessionNotCompletedException` (regla de negocio para feedback), además de la captura de errores de validación de Jakarta Bean Validation (`@Valid`).
 
 ---
 
 ## Medidas de Seguridad Implementadas
 
 ### Seguridad de Datos
-*   **Autenticación JWT:** Los tokens JWT permiten una autenticación sin estado (stateless), mejorando la escalabilidad y seguridad de la API.
-*   **Cifrado de Contraseñas:** Uso de `BCryptPasswordEncoder` para asegurar que las contraseñas nunca se almacenen en texto plano.
-*   **Gestión de Permisos:** Los endpoints están protegidos mediante roles. Por ejemplo, solo un usuario con `ROLE_MENTOR` puede actualizar su disponibilidad.
+*   **Autenticación JWT:** Implementación de tokens sin estado para asegurar cada solicitud a la API.
+*   **Cifrado de Contraseñas:** Uso de `BCryptPasswordEncoder` para proteger las credenciales en la base de datos.
+*   **Autorización a Nivel de Servicio:** Además de los roles de Spring Security, se han implementado chequeos de propiedad (*Ownership checks*) en la capa de servicios. Esto asegura que, por ejemplo, un usuario solo pueda marcar como leídas sus propias notificaciones o que solo el alumno de una reserva pueda dejar feedback.
 
 ### Prevención de Vulnerabilidades
-*   **CORS:** Configuración estricta de Cross-Origin Resource Sharing.
-*   **Protección contra Inyección SQL:** Gracias al uso de Spring Data JPA y consultas parametrizadas.
+*   **Validación de Entradas:** Uso extensivo de DTOs con anotaciones de validación para prevenir datos corruptos o ataques de inyección.
+*   **CORS & SQL Injection:** Configuraciones nativas de Spring Boot y JPA para mitigar riesgos comunes del OWASP Top 10.
 
 ---
 

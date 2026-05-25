@@ -24,6 +24,36 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(NotificationNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotificationNotFound(NotificationNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(SessionNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleSessionNotFound(SessionNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(UnauthorizedNotificationAccessException.class)
+    public ResponseEntity<Map<String, Object>> handleUnauthorizedNotificationAccess(UnauthorizedNotificationAccessException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidSessionParticipantException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidSessionParticipant(InvalidSessionParticipantException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(FeedbackAlreadySubmittedException.class)
+    public ResponseEntity<Map<String, Object>> handleFeedbackAlreadySubmitted(FeedbackAlreadySubmittedException ex) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(SessionNotCompletedException.class)
+    public ResponseEntity<Map<String, Object>> handleSessionNotCompleted(SessionNotCompletedException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleBadCredentials() {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Email o contraseña incorrectos");
