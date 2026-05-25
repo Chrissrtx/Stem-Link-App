@@ -3,9 +3,13 @@
 **Curso:** CS 2031 Desarrollo Basado en Plataforma  
 **Institución:** UTEC - Universidad de Ingeniería y Tecnología  
 **Integrantes:**  
-* Christian Estefano Estrada Fiestas 202420047
-* Geremid Mickell Flores Alva 202410284
-* Osmar Fabian 202210137
+## Integrantes
+
+| Nombre Completo | Código | GitHub User |
+| :--- | :---: | :--- |
+| Christian Estefano Estrada Fiestas | 202420047 | [Chrissrtx](https://github.com/Chrissrtx) |
+| Geremid Mickell Flores Alva | 202410284 | [Geremid](https://github.com/Geremid) |
+| Osmar Fabian | 202210137 | [osmarfabian](https://github.com/osmarfabian) |
 
 ---
 
