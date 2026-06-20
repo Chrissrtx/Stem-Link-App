@@ -7,11 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -37,7 +39,7 @@ public class NotificationControllerTest {
     @Test
     @WithMockUser(username = "noti@test.com")
     void whenGetMyNotifications_thenReturnOk() throws Exception {
-        when(notificationService.getMyNotifications(anyString())).thenReturn(Collections.emptyList());
+        when(notificationService.getMyNotifications(anyString(), any())).thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/notifications"))
                 .andExpect(status().isOk());

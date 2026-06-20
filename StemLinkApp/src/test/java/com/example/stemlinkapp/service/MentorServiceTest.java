@@ -15,6 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -101,12 +105,18 @@ public class MentorServiceTest {
 
     @Test
     void whenFilterMentors_thenSuccess() {
-        when(mentorProfileRepository.findAll()).thenReturn(List.of(mentorProfile));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<MentorProfile> mentorPage = new PageImpl<>(List.of(mentorProfile), pageable, 1);
+
+        when(mentorProfileRepository.searchMentors(any(), anyBoolean(), anyList(), any(Pageable.class)))
+                .thenReturn(mentorPage);
         when(modelMapper.map(any(), eq(MentorProfileResponse.class))).thenReturn(new MentorProfileResponse());
 
-        List<MentorProfileResponse> result = mentorService.filterMentors("Mentor", null);
+        Page<MentorProfileResponse> result = mentorService.filterMentors("Mentor", null, pageable);
 
-        assertThat(result).isNotEmpty();
-        verify(mentorProfileRepository, times(1)).findAll();
+        assertThat(result.getContent()).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        verify(mentorProfileRepository, times(1))
+                .searchMentors(any(), anyBoolean(), anyList(), any(Pageable.class));
     }
 }

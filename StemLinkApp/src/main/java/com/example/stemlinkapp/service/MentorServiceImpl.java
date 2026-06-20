@@ -10,11 +10,12 @@ import com.example.stemlinkapp.repository.MentorProfileRepository;
 import com.example.stemlinkapp.repository.TechnicalSkillRepository;
 import com.example.stemlinkapp.repository.UserRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class MentorServiceImpl implements MentorService {
@@ -65,26 +66,24 @@ public class MentorServiceImpl implements MentorService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MentorProfileResponse> filterMentors(String name, List<Long> skillIds) {
-        List<MentorProfile> mentors;
-        
-        if (skillIds != null && !skillIds.isEmpty()) {
-            List<String> skillNames = technicalSkillRepository.findAllById(skillIds)
-                    .stream().map(TechnicalSkill::getName).map(String::toLowerCase).toList();
-            mentors = mentorProfileRepository.findBySkills(skillNames);
-        } else {
-            mentors = mentorProfileRepository.findAll();
-        }
+    public Page<MentorProfileResponse> filterMentors(String name, List<Long> skillIds, Pageable pageable) {
+        boolean filterBySkills = skillIds != null && !skillIds.isEmpty();
 
-        if (name != null && !name.isEmpty()) {
-            mentors = mentors.stream()
-                    .filter(m -> m.getUser().getName().toLowerCase().contains(name.toLowerCase()))
-                    .collect(Collectors.toList());
-        }
+        // Cuando no se filtra por skills se pasa una lista placeholder no vacía
+        // para que la cláusula IN siga siendo SQL válida (IN () da error).
+        List<String> skillNames = filterBySkills
+                ? technicalSkillRepository.findAllById(skillIds).stream()
+                        .map(TechnicalSkill::getName)
+                        .map(String::toLowerCase)
+                        .toList()
+                : List.of("");
 
-        return mentors.stream()
-                .map(m -> modelMapper.map(m, MentorProfileResponse.class))
-                .collect(Collectors.toList());
+        String nameFilter = (name != null && !name.isBlank()) ? name : null;
+
+        Page<MentorProfile> page = mentorProfileRepository
+                .searchMentors(nameFilter, filterBySkills, skillNames, pageable);
+
+        return page.map(m -> modelMapper.map(m, MentorProfileResponse.class));
     }
 
     @Override
