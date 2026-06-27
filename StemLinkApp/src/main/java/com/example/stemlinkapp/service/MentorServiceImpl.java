@@ -35,17 +35,25 @@ public class MentorServiceImpl implements MentorService {
         this.modelMapper = modelMapper;
     }
 
+    private MentorProfileResponse toResponse(MentorProfile mentor) {
+        MentorProfileResponse response = modelMapper.map(mentor, MentorProfileResponse.class);
+        if (mentor.getUser() != null) {
+            response.setName(mentor.getUser().getName());
+        }
+        return response;
+    }
+
     @Override
     @Transactional
     public MentorProfileResponse updateMentorProfile(String email, MentorProfileRequest request) {
         MentorProfile mentor = mentorProfileRepository.findByUserEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Perfil de mentor no encontrado para el usuario: " + email));
-        
+
         mentor.setBio(request.getBio());
         mentor.setVideoCallUrl(request.getVideoCallUrl());
         mentor.setLinkedinUrl(request.getLinkedinUrl());
-        
-        return modelMapper.map(mentorProfileRepository.save(mentor), MentorProfileResponse.class);
+
+        return toResponse(mentorProfileRepository.save(mentor));
     }
 
     @Override
@@ -53,15 +61,15 @@ public class MentorServiceImpl implements MentorService {
     public MentorProfileResponse associateSkillsToMentor(String email, List<Long> skillIds) {
         MentorProfile mentor = mentorProfileRepository.findByUserEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Perfil de mentor no encontrado para el usuario: " + email));
-        
+
         List<TechnicalSkill> skills = technicalSkillRepository.findAllById(skillIds);
-        
+
         if (skills.size() != skillIds.size()) {
             throw new SkillNotFoundException("Una o más habilidades no existen en el catálogo");
         }
-        
+
         mentor.setSkills(skills);
-        return modelMapper.map(mentorProfileRepository.save(mentor), MentorProfileResponse.class);
+        return toResponse(mentorProfileRepository.save(mentor));
     }
 
     @Override
@@ -69,8 +77,6 @@ public class MentorServiceImpl implements MentorService {
     public Page<MentorProfileResponse> filterMentors(String name, List<Long> skillIds, Pageable pageable) {
         boolean filterBySkills = skillIds != null && !skillIds.isEmpty();
 
-        // Cuando no se filtra por skills se pasa una lista placeholder no vacía
-        // para que la cláusula IN siga siendo SQL válida (IN () da error).
         List<String> skillNames = filterBySkills
                 ? technicalSkillRepository.findAllById(skillIds).stream()
                         .map(TechnicalSkill::getName)
@@ -83,7 +89,7 @@ public class MentorServiceImpl implements MentorService {
         Page<MentorProfile> page = mentorProfileRepository
                 .searchMentors(nameFilter, filterBySkills, skillNames, pageable);
 
-        return page.map(m -> modelMapper.map(m, MentorProfileResponse.class));
+        return page.map(this::toResponse);
     }
 
     @Override
@@ -91,6 +97,6 @@ public class MentorServiceImpl implements MentorService {
     public MentorProfileResponse getMentorProfile(Long id) {
         MentorProfile mentor = mentorProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mentor no encontrado con ID: " + id));
-        return modelMapper.map(mentor, MentorProfileResponse.class);
+        return toResponse(mentor);
     }
 }

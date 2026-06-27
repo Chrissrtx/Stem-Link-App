@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,12 +28,14 @@ public class MentorController {
         this.technicalSkillService = technicalSkillService;
     }
 
+    @Secured("ROLE_MENTOR")
     @PatchMapping("/users/me/profile")
     public ResponseEntity<MentorProfileResponse> updateMentorProfile(@RequestBody MentorProfileRequest request, Principal principal) {
         MentorProfileResponse response = mentorService.updateMentorProfile(principal.getName(), request);
         return ResponseEntity.ok(response);
     }
 
+    @Secured("ROLE_MENTOR")
     @PostMapping("/users/me/tags")
     public ResponseEntity<MentorProfileResponse> associateTechnicalSkills(@RequestBody List<Long> skillIds, Principal principal) {
         MentorProfileResponse response = mentorService.associateSkillsToMentor(principal.getName(), skillIds);

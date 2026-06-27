@@ -1,5 +1,6 @@
 package com.example.stemlinkapp.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
@@ -28,6 +30,9 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthorizationFilter jwtFilter;
+
+    @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:8081}")
+    private String allowedOriginsStr;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtAuthorizationFilter jwtFilter) {
         this.userDetailsService = userDetailsService;
@@ -58,11 +63,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5173",        // Web con Vite (desarrollo)
-                "http://localhost:8081",        // Expo web (desarrollo)
-                "https://TU-APP.vercel.app"     // <-- CAMBIA esto por tu URL real de Vercel
-        ));
+        config.setAllowedOrigins(Arrays.asList(allowedOriginsStr.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
@@ -87,7 +88,7 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/mentors/**").hasRole("MENTOR")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/mentors/**").hasRole("MENTOR")
                         .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/mentors/**").hasRole("MENTOR")
-                        .requestMatchers("/api/bookings/**").authenticated()
+                        .requestMatchers("/api/sessions/**").authenticated()
                         .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/api/users/me").authenticated()
                         .anyRequest().authenticated()

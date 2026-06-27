@@ -1,5 +1,6 @@
 package com.example.stemlinkapp.service;
 
+import com.example.stemlinkapp.domain.Booking;
 import com.example.stemlinkapp.domain.BookingStatus;
 import com.example.stemlinkapp.domain.MentorshipSession;
 import com.example.stemlinkapp.domain.SessionFeedback;
@@ -35,6 +36,26 @@ public class MentorshipSessionService {
         this.eventPublisher = eventPublisher;
     }
 
+    private MentorshipSessionResponse toResponse(MentorshipSession session) {
+        MentorshipSessionResponse response = new MentorshipSessionResponse();
+        response.setId(session.getId());
+        response.setTopic(session.getTopic());
+        Booking booking = session.getBooking();
+        if (booking != null) {
+            response.setStatus(booking.getStatus() != null ? booking.getStatus().name() : null);
+            response.setDate(booking.getDate());
+            response.setStartTime(booking.getStartTime());
+            response.setEndTime(booking.getEndTime());
+            if (booking.getMentor() != null && booking.getMentor().getUser() != null) {
+                response.setMentorName(booking.getMentor().getUser().getName());
+            }
+            if (booking.getStudent() != null) {
+                response.setStudentName(booking.getStudent().getName());
+            }
+        }
+        return response;
+    }
+
     @Transactional(readOnly = true)
     public List<MentorshipSessionResponse> getSessionHistory(String email, String status) {
         BookingStatus bookingStatus = null;
@@ -46,7 +67,7 @@ public class MentorshipSessionService {
             }
         }
         return mentorshipSessionRepository.findByUserEmailAndStatus(email, bookingStatus).stream()
-                .map(s -> modelMapper.map(s, MentorshipSessionResponse.class))
+                .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
