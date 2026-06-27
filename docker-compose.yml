@@ -10,12 +10,31 @@ services:
       - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user1 -d stemlink_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   app:
     build: .
     container_name: stemlink-app
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: stemlink-db
+      DB_PORT: 5432
+      DB_NAME: stemlink_db
+      DB_USER: user1
+      DB_PASSWORD: password1
+      JWT_SECRET: ${JWT_SECRET:-clave_super_secreta_de_al_menos_256_bits_para_stemlink_app}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      MAIL_HOST: ${MAIL_HOST:-smtp.mailtrap.io}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    restart: on-failure
 volumes:
   postgres_data:
