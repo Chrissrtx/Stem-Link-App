@@ -13,6 +13,7 @@ import com.example.stemlinkapp.repository.AvailabilityBlockRepository;
 import com.example.stemlinkapp.repository.BookingRepository;
 import com.example.stemlinkapp.repository.MentorProfileRepository;
 import com.example.stemlinkapp.repository.UserRepository;
+import com.example.stemlinkapp.repository.MentorshipSessionRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class BookingService {
     private final AvailabilityBlockRepository availabilityBlockRepository;
     private final MentorProfileRepository mentorProfileRepository;
     private final UserRepository userRepository;
+    private final MentorshipSessionRepository mentorshipSessionRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final EmailService emailService;
 
@@ -32,12 +34,14 @@ public class BookingService {
             AvailabilityBlockRepository availabilityBlockRepository,
             MentorProfileRepository mentorProfileRepository,
             UserRepository userRepository,
+            MentorshipSessionRepository mentorshipSessionRepository,
             ApplicationEventPublisher eventPublisher,
             EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.availabilityBlockRepository = availabilityBlockRepository;
         this.mentorProfileRepository = mentorProfileRepository;
         this.userRepository = userRepository;
+        this.mentorshipSessionRepository = mentorshipSessionRepository;
         this.eventPublisher = eventPublisher;
         this.emailService = emailService;
     }
@@ -111,6 +115,13 @@ public class BookingService {
                 vars.put("startTime", booking.getStartTime().toString());
                 vars.put("endTime", booking.getEndTime().toString());
                 emailService.sendHtmlMessage(studentEmail, "¡Reserva Confirmada! - STEM Link", "booking-confirmed.html", vars);
+
+                // Crear la sesión real de mentoría
+                MentorshipSession session = new MentorshipSession();
+                session.setBooking(booking);
+                session.setTopic("Sesión de Mentoría STEM - " + booking.getMentor().getUser().getName());
+                session.setNotes("Sesión programada");
+                mentorshipSessionRepository.save(session);
             }
             case CANCELLED -> {
                 if (!userEmail.equals(mentorEmail) && !userEmail.equals(studentEmail))

@@ -16,12 +16,16 @@ public class FixedApiVersionDockerStrategy extends DockerClientProviderStrategy 
                 .build();
     }
 
-    @Override
     public DockerClientConfig getDockerClientConfig() {
         return DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost("unix:///var/run/docker.sock")
                 .withApiVersion("1.41")
                 .build();
+    }
+
+    @Override
+    protected boolean isApplicable() {
+        return true;
     }
 
     @Override

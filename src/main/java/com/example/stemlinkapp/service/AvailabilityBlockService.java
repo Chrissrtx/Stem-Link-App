@@ -86,8 +86,11 @@ public class AvailabilityBlockService {
             throw new UnauthorizedException("No tienes permiso para eliminar este bloque");
         }
 
-        boolean hasActive = bookingRepository.hasActiveBookingsForBlock(
-                mentor.getId(), block.getStartTime(), block.getEndTime());        if (hasActive) {
+        List<com.example.stemlinkapp.domain.Booking> activeBookings = bookingRepository.findActiveBookingsOverlappingTime(
+                mentor.getId(), block.getStartTime(), block.getEndTime());
+        boolean hasActive = activeBookings.stream()
+                .anyMatch(b -> b.getDate().getDayOfWeek().equals(block.getDayOfWeek()));
+        if (hasActive) {
             throw new InvalidOperationException("No se puede eliminar un bloque con reservas activas");
         }
 

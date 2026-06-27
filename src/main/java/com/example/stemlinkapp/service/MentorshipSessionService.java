@@ -1,5 +1,6 @@
 package com.example.stemlinkapp.service;
 
+import com.example.stemlinkapp.domain.BookingStatus;
 import com.example.stemlinkapp.domain.MentorshipSession;
 import com.example.stemlinkapp.domain.SessionFeedback;
 import com.example.stemlinkapp.dto.MentorshipSessionResponse;
@@ -36,10 +37,15 @@ public class MentorshipSessionService {
 
     @Transactional(readOnly = true)
     public List<MentorshipSessionResponse> getSessionHistory(String email, String status) {
-        // Implementación básica para listar sesiones del usuario (estudiante o mentor)
-        return mentorshipSessionRepository.findAll().stream()
-                .filter(s -> s.getBooking().getStudent().getEmail().equals(email) || 
-                            s.getBooking().getMentor().getUser().getEmail().equals(email))
+        BookingStatus bookingStatus = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                bookingStatus = BookingStatus.valueOf(status.toUpperCase().trim());
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid status and don't filter by it
+            }
+        }
+        return mentorshipSessionRepository.findByUserEmailAndStatus(email, bookingStatus).stream()
                 .map(s -> modelMapper.map(s, MentorshipSessionResponse.class))
                 .collect(Collectors.toList());
     }

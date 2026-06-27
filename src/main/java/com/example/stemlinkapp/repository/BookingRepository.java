@@ -17,13 +17,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findAllByStatusAndCreatedAtBefore(BookingStatus status, LocalDateTime dateTime);
 
     @Query("""
-            SELECT COUNT(b) > 0 FROM Booking b
+            SELECT b FROM Booking b
             WHERE b.mentor.id = :mentorId
               AND b.status IN ('PENDING', 'CONFIRMED')
               AND b.startTime < :endTime
               AND b.endTime > :startTime
             """)
-    boolean hasActiveBookingsForBlock(
+    List<Booking> findActiveBookingsOverlappingTime(
             @Param("mentorId") Long mentorId,
             @Param("startTime") LocalTime startTime,
             @Param("endTime") LocalTime endTime
