@@ -41,24 +41,20 @@ public class DataInitializer {
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
-            if (userRepository.count() > 0) {
-                return;
-            }
+            TechnicalSkill java = ensureSkill(technicalSkillRepository, "Java", "Programación orientada a objetos con Java y Spring.");
+            TechnicalSkill python = ensureSkill(technicalSkillRepository, "Python", "Automatización, ciencia de datos e IA.");
+            TechnicalSkill react = ensureSkill(technicalSkillRepository, "React", "Interfaces modernas con componentes y hooks.");
+            TechnicalSkill databases = ensureSkill(technicalSkillRepository, "Bases de Datos", "SQL, PostgreSQL y modelado relacional.");
+            TechnicalSkill ml = ensureSkill(technicalSkillRepository, "Machine Learning", "Modelos predictivos y fundamentos de IA.");
+            TechnicalSkill cloud = ensureSkill(technicalSkillRepository, "Cloud", "Despliegue y arquitectura en la nube.");
 
-            TechnicalSkill java = createSkill(technicalSkillRepository, "Java", "Programación orientada a objetos con Java y Spring.");
-            TechnicalSkill python = createSkill(technicalSkillRepository, "Python", "Automatización, ciencia de datos e IA.");
-            TechnicalSkill react = createSkill(technicalSkillRepository, "React", "Interfaces modernas con componentes y hooks.");
-            TechnicalSkill databases = createSkill(technicalSkillRepository, "Bases de Datos", "SQL, PostgreSQL y modelado relacional.");
-            TechnicalSkill ml = createSkill(technicalSkillRepository, "Machine Learning", "Modelos predictivos y fundamentos de IA.");
-            TechnicalSkill cloud = createSkill(technicalSkillRepository, "Cloud", "Despliegue y arquitectura en la nube.");
+            User mentorCarlos = ensureUser(userRepository, passwordEncoder, "Carlos Mendoza", "carlos.mentor@stemlink.com", "Mentor@123", "MENTOR");
+            User mentorAna = ensureUser(userRepository, passwordEncoder, "Ana Torres", "ana.mentor@stemlink.com", "Mentor@123", "MENTOR");
+            User mentorDiego = ensureUser(userRepository, passwordEncoder, "Diego Ramos", "diego.mentor@stemlink.com", "Mentor@123", "MENTOR");
+            User studentLucia = ensureUser(userRepository, passwordEncoder, "Lucia Student", "lucia.student@stemlink.com", "Student@123", "STUDENT");
+            User studentMiguel = ensureUser(userRepository, passwordEncoder, "Miguel Student", "miguel.student@stemlink.com", "Student@123", "STUDENT");
 
-            User mentorCarlos = createUser(userRepository, passwordEncoder, "Carlos Mendoza", "carlos.mentor@stemlink.com", "Mentor@123", "MENTOR");
-            User mentorAna = createUser(userRepository, passwordEncoder, "Ana Torres", "ana.mentor@stemlink.com", "Mentor@123", "MENTOR");
-            User mentorDiego = createUser(userRepository, passwordEncoder, "Diego Ramos", "diego.mentor@stemlink.com", "Mentor@123", "MENTOR");
-            User studentLucia = createUser(userRepository, passwordEncoder, "Lucia Student", "lucia.student@stemlink.com", "Student@123", "STUDENT");
-            User studentMiguel = createUser(userRepository, passwordEncoder, "Miguel Student", "miguel.student@stemlink.com", "Student@123", "STUDENT");
-
-            MentorProfile carlosProfile = createMentorProfile(
+            MentorProfile carlosProfile = ensureMentorProfile(
                     mentorProfileRepository,
                     mentorCarlos,
                     "Ingeniero backend con foco en Java, APIs REST y despliegue cloud.",
@@ -67,7 +63,7 @@ public class DataInitializer {
                     "15 estudiantes mentoreados",
                     List.of(java, databases, cloud)
             );
-            MentorProfile anaProfile = createMentorProfile(
+            MentorProfile anaProfile = ensureMentorProfile(
                     mentorProfileRepository,
                     mentorAna,
                     "Data scientist en fintech. Especialista en Python, ML y storytelling con datos.",
@@ -76,7 +72,7 @@ public class DataInitializer {
                     "23 estudiantes mentoreados",
                     List.of(python, ml, databases)
             );
-            MentorProfile diegoProfile = createMentorProfile(
+            MentorProfile diegoProfile = ensureMentorProfile(
                     mentorProfileRepository,
                     mentorDiego,
                     "Fullstack engineer con experiencia en React, DX y productos SaaS.",
@@ -86,40 +82,49 @@ public class DataInitializer {
                     List.of(react, java, cloud)
             );
 
-            AvailabilityBlock carlosBlockOne = createAvailability(availabilityBlockRepository, carlosProfile, DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 0));
-            AvailabilityBlock carlosBlockTwo = createAvailability(availabilityBlockRepository, carlosProfile, DayOfWeek.WEDNESDAY, LocalTime.of(16, 0), LocalTime.of(17, 0));
-            AvailabilityBlock anaBlockOne = createAvailability(availabilityBlockRepository, anaProfile, DayOfWeek.TUESDAY, LocalTime.of(15, 0), LocalTime.of(16, 0));
-            AvailabilityBlock diegoBlockOne = createAvailability(availabilityBlockRepository, diegoProfile, DayOfWeek.FRIDAY, LocalTime.of(9, 0), LocalTime.of(10, 0));
+            if (bookingRepository.count() == 0) {
+                AvailabilityBlock carlosBlockOne = createAvailability(availabilityBlockRepository, carlosProfile, DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 0));
+                AvailabilityBlock carlosBlockTwo = createAvailability(availabilityBlockRepository, carlosProfile, DayOfWeek.WEDNESDAY, LocalTime.of(16, 0), LocalTime.of(17, 0));
+                AvailabilityBlock anaBlockOne = createAvailability(availabilityBlockRepository, anaProfile, DayOfWeek.TUESDAY, LocalTime.of(15, 0), LocalTime.of(16, 0));
+                AvailabilityBlock diegoBlockOne = createAvailability(availabilityBlockRepository, diegoProfile, DayOfWeek.FRIDAY, LocalTime.of(9, 0), LocalTime.of(10, 0));
 
-            Booking bookingOne = createBooking(
-                    bookingRepository, studentLucia, carlosProfile, BookingStatus.CONFIRMED,
-                    nextDate(DayOfWeek.MONDAY), carlosBlockOne.getStartTime(), carlosBlockOne.getEndTime(),
-                    "Introducción a Spring Boot"
-            );
-            Booking bookingTwo = createBooking(
-                    bookingRepository, studentMiguel, anaProfile, BookingStatus.PENDING,
-                    nextDate(DayOfWeek.TUESDAY), anaBlockOne.getStartTime(), anaBlockOne.getEndTime(),
-                    "Ruta de aprendizaje para Machine Learning"
-            );
-            Booking bookingThree = createBooking(
-                    bookingRepository, studentLucia, diegoProfile, BookingStatus.CONFIRMED,
-                    nextDate(DayOfWeek.FRIDAY), diegoBlockOne.getStartTime(), diegoBlockOne.getEndTime(),
-                    "React desde cero"
-            );
-            Booking bookingFour = createBooking(
-                    bookingRepository, studentMiguel, carlosProfile, BookingStatus.CANCELLED,
-                    nextDate(DayOfWeek.WEDNESDAY), carlosBlockTwo.getStartTime(), carlosBlockTwo.getEndTime(),
-                    "Diseño de APIs REST"
-            );
+                Booking bookingOne = createBooking(
+                        bookingRepository, studentLucia, carlosProfile, BookingStatus.CONFIRMED,
+                        nextDate(DayOfWeek.MONDAY), carlosBlockOne.getStartTime(), carlosBlockOne.getEndTime(),
+                        "Introducción a Spring Boot"
+                );
+                Booking bookingThree = createBooking(
+                        bookingRepository, studentLucia, diegoProfile, BookingStatus.CONFIRMED,
+                        nextDate(DayOfWeek.FRIDAY), diegoBlockOne.getStartTime(), diegoBlockOne.getEndTime(),
+                        "React desde cero"
+                );
+                createBooking(
+                        bookingRepository, studentMiguel, anaProfile, BookingStatus.PENDING,
+                        nextDate(DayOfWeek.TUESDAY), anaBlockOne.getStartTime(), anaBlockOne.getEndTime(),
+                        "Ruta de aprendizaje para Machine Learning"
+                );
+                createBooking(
+                        bookingRepository, studentMiguel, carlosProfile, BookingStatus.CANCELLED,
+                        nextDate(DayOfWeek.WEDNESDAY), carlosBlockTwo.getStartTime(), carlosBlockTwo.getEndTime(),
+                        "Diseño de APIs REST"
+                );
 
-            createSession(mentorshipSessionRepository, bookingOne, bookingOne.getTopic());
-            createSession(mentorshipSessionRepository, bookingThree, bookingThree.getTopic());
+                createSession(mentorshipSessionRepository, bookingOne, bookingOne.getTopic());
+                createSession(mentorshipSessionRepository, bookingThree, bookingThree.getTopic());
 
-            createNotification(notificationRepository, mentorCarlos, "Nueva solicitud", "Lucia Student ha solicitado una sesión contigo.", false);
-            createNotification(notificationRepository, mentorAna, "Reserva pendiente", "Miguel Student está esperando tu respuesta.", false);
-            createNotification(notificationRepository, studentLucia, "Reserva confirmada", "Carlos Mendoza confirmó tu sesión de Spring Boot.", true);
-            createNotification(notificationRepository, studentMiguel, "Reserva cancelada", "Una de tus reservas fue cancelada y requiere reprogramación.", false);
+                createNotification(notificationRepository, mentorCarlos, "Nueva solicitud", "Lucia Student ha solicitado una sesión contigo.", false);
+                createNotification(notificationRepository, mentorAna, "Reserva pendiente", "Miguel Student está esperando tu respuesta.", false);
+                createNotification(notificationRepository, studentLucia, "Reserva confirmada", "Carlos Mendoza confirmó tu sesión de Spring Boot.", true);
+                createNotification(notificationRepository, studentMiguel, "Reserva cancelada", "Una de tus reservas fue cancelada y requiere reprogramación.", false);
+            }
         };
+    }
+
+    private TechnicalSkill ensureSkill(TechnicalSkillRepository repository, String name, String description) {
+        return repository.findAll().stream()
+                .filter(skill -> skill.getName() != null && skill.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElseGet(() -> createSkill(repository, name, description));
     }
 
     private TechnicalSkill createSkill(TechnicalSkillRepository repository, String name, String description) {
@@ -129,6 +134,11 @@ public class DataInitializer {
         return repository.save(skill);
     }
 
+    private User ensureUser(UserRepository repository, PasswordEncoder passwordEncoder, String name, String email, String password, String role) {
+        return repository.findByEmail(email)
+                .orElseGet(() -> createUser(repository, passwordEncoder, name, email, password, role));
+    }
+
     private User createUser(UserRepository repository, PasswordEncoder passwordEncoder, String name, String email, String password, String role) {
         User user = new User();
         user.setName(name);
@@ -136,6 +146,19 @@ public class DataInitializer {
         user.setPassword(passwordEncoder.encode(password));
         user.setRoles(List.of(role));
         return repository.save(user);
+    }
+
+    private MentorProfile ensureMentorProfile(
+            MentorProfileRepository repository,
+            User user,
+            String bio,
+            String linkedinUrl,
+            String videoCallUrl,
+            String impactMetrics,
+            List<TechnicalSkill> skills
+    ) {
+        return repository.findByUserEmail(user.getEmail())
+                .orElseGet(() -> createMentorProfile(repository, user, bio, linkedinUrl, videoCallUrl, impactMetrics, skills));
     }
 
     private MentorProfile createMentorProfile(

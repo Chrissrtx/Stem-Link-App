@@ -2,10 +2,12 @@ package com.example.stemlinkapp.service;
 
 import com.example.stemlinkapp.domain.MentorProfile;
 import com.example.stemlinkapp.domain.TechnicalSkill;
+import com.example.stemlinkapp.domain.User;
 import com.example.stemlinkapp.dto.MentorProfileRequest;
 import com.example.stemlinkapp.dto.MentorProfileResponse;
 import com.example.stemlinkapp.exception.ResourceNotFoundException;
 import com.example.stemlinkapp.exception.SkillNotFoundException;
+import com.example.stemlinkapp.exception.UserNotFoundException;
 import com.example.stemlinkapp.repository.MentorProfileRepository;
 import com.example.stemlinkapp.repository.TechnicalSkillRepository;
 import com.example.stemlinkapp.repository.UserRepository;
@@ -43,11 +45,38 @@ public class MentorServiceImpl implements MentorService {
         return response;
     }
 
+    private MentorProfile getOrCreateMentorProfile(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+
+        boolean isMentor = user.getRoles() != null && user.getRoles().stream()
+                .anyMatch(role -> "MENTOR".equalsIgnoreCase(role));
+
+        if (!isMentor) {
+            throw new IllegalStateException("El usuario no tiene perfil de mentor");
+        }
+
+        return mentorProfileRepository.findByUserEmail(email)
+                .orElseGet(() -> {
+                    MentorProfile mentor = new MentorProfile();
+                    mentor.setUser(user);
+                    mentor.setBio("¡Hola! Soy un mentor en STEM Link.");
+                    mentor.setImpactMetrics("Perfil de mentor recién creado");
+                    return mentorProfileRepository.save(mentor);
+                });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MentorProfileResponse getCurrentMentorProfile(String email) {
+        MentorProfile mentor = getOrCreateMentorProfile(email);
+        return toResponse(mentor);
+    }
+
     @Override
     @Transactional
     public MentorProfileResponse updateMentorProfile(String email, MentorProfileRequest request) {
-        MentorProfile mentor = mentorProfileRepository.findByUserEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Perfil de mentor no encontrado para el usuario: " + email));
+        MentorProfile mentor = getOrCreateMentorProfile(email);
         
         mentor.setBio(request.getBio());
         mentor.setVideoCallUrl(request.getVideoCallUrl());
@@ -59,8 +88,7 @@ public class MentorServiceImpl implements MentorService {
     @Override
     @Transactional
     public MentorProfileResponse associateSkillsToMentor(String email, List<Long> skillIds) {
-        MentorProfile mentor = mentorProfileRepository.findByUserEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Perfil de mentor no encontrado para el usuario: " + email));
+        MentorProfile mentor = getOrCreateMentorProfile(email);
         
         List<TechnicalSkill> skills = technicalSkillRepository.findAllById(skillIds);
         
