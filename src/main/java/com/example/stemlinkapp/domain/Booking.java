@@ -20,6 +20,7 @@ public class Booking {
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
+    private String topic;
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status;

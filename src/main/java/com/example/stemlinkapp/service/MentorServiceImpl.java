@@ -10,11 +10,12 @@ import com.example.stemlinkapp.repository.MentorProfileRepository;
 import com.example.stemlinkapp.repository.TechnicalSkillRepository;
 import com.example.stemlinkapp.repository.UserRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class MentorServiceImpl implements MentorService {
@@ -34,6 +35,14 @@ public class MentorServiceImpl implements MentorService {
         this.modelMapper = modelMapper;
     }
 
+    private MentorProfileResponse toResponse(MentorProfile mentor) {
+        MentorProfileResponse response = modelMapper.map(mentor, MentorProfileResponse.class);
+        if (mentor.getUser() != null) {
+            response.setName(mentor.getUser().getName());
+        }
+        return response;
+    }
+
     @Override
     @Transactional
     public MentorProfileResponse updateMentorProfile(String email, MentorProfileRequest request) {
@@ -44,7 +53,7 @@ public class MentorServiceImpl implements MentorService {
         mentor.setVideoCallUrl(request.getVideoCallUrl());
         mentor.setLinkedinUrl(request.getLinkedinUrl());
         
-        return modelMapper.map(mentorProfileRepository.save(mentor), MentorProfileResponse.class);
+        return toResponse(mentorProfileRepository.save(mentor));
     }
 
     @Override
@@ -60,31 +69,28 @@ public class MentorServiceImpl implements MentorService {
         }
         
         mentor.setSkills(skills);
-        return modelMapper.map(mentorProfileRepository.save(mentor), MentorProfileResponse.class);
+        return toResponse(mentorProfileRepository.save(mentor));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MentorProfileResponse> filterMentors(String name, List<Long> skillIds) {
-        List<MentorProfile> mentors;
-        
-        if (skillIds != null && !skillIds.isEmpty()) {
-            List<String> skillNames = technicalSkillRepository.findAllById(skillIds)
-                    .stream().map(TechnicalSkill::getName).map(String::toLowerCase).toList();
-            mentors = mentorProfileRepository.findBySkills(skillNames);
-        } else {
-            mentors = mentorProfileRepository.findAll();
-        }
+    public Page<MentorProfileResponse> filterMentors(String name, List<Long> skillIds, Pageable pageable) {
+        boolean filterByName = name != null && !name.isBlank();
+        boolean filterBySkills = skillIds != null && !skillIds.isEmpty();
 
-        if (name != null && !name.isEmpty()) {
-            mentors = mentors.stream()
-                    .filter(m -> m.getUser().getName().toLowerCase().contains(name.toLowerCase()))
-                    .collect(Collectors.toList());
-        }
+        List<String> skillNames = filterBySkills
+                ? technicalSkillRepository.findAllById(skillIds).stream()
+                        .map(TechnicalSkill::getName)
+                        .map(String::toLowerCase)
+                        .toList()
+                : List.of("");
 
-        return mentors.stream()
-                .map(m -> modelMapper.map(m, MentorProfileResponse.class))
-                .collect(Collectors.toList());
+        String nameFilter = filterByName ? name : "";
+
+        Page<MentorProfile> page = mentorProfileRepository
+                .searchMentors(filterByName, nameFilter, filterBySkills, skillNames, pageable);
+
+        return page.map(this::toResponse);
     }
 
     @Override
@@ -92,6 +98,6 @@ public class MentorServiceImpl implements MentorService {
     public MentorProfileResponse getMentorProfile(Long id) {
         MentorProfile mentor = mentorProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mentor no encontrado con ID: " + id));
-        return modelMapper.map(mentor, MentorProfileResponse.class);
+        return toResponse(mentor);
     }
 }

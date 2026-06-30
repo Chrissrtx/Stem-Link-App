@@ -1,20 +1,18 @@
 package com.example.stemlinkapp.service;
 
 import com.example.stemlinkapp.domain.Notification;
-import com.example.stemlinkapp.domain.User;
 import com.example.stemlinkapp.dto.NotificationResponse;
 import com.example.stemlinkapp.event.MentorshipSessionCreatedEvent;
-import com.example.stemlinkapp.repository.NotificationRepository;
 import com.example.stemlinkapp.exception.NotificationNotFoundException;
 import com.example.stemlinkapp.exception.UnauthorizedNotificationAccessException;
+import com.example.stemlinkapp.repository.NotificationRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
@@ -27,10 +25,9 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public List<NotificationResponse> getMyNotifications(String email) {
-        return notificationRepository.findByUserEmailOrderByCreatedAtDesc(email).stream()
-                .map(n -> modelMapper.map(n, NotificationResponse.class))
-                .collect(Collectors.toList());
+    public Page<NotificationResponse> getMyNotifications(String email, Pageable pageable) {
+        return notificationRepository.findByUserEmailOrderByCreatedAtDesc(email, pageable)
+                .map(n -> modelMapper.map(n, NotificationResponse.class));
     }
 
     @Transactional

@@ -11,7 +11,6 @@ import java.security.Principal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/mentorship-sessions")
 public class MentorshipSessionController {
     private final MentorshipSessionService mentorshipSessionService;
 
@@ -19,14 +18,14 @@ public class MentorshipSessionController {
         this.mentorshipSessionService = mentorshipSessionService;
     }
 
-    @GetMapping
+    @GetMapping({"/api/v1/mentorship-sessions", "/api/mentorship-sessions", "/api/sessions"})
     public ResponseEntity<List<MentorshipSessionResponse>> getMySessions(
             @RequestParam(required = false) String status, 
             Principal principal) {
         return ResponseEntity.ok(mentorshipSessionService.getSessionHistory(principal.getName(), status));
     }
 
-    @PostMapping("/{id}/feedback")
+    @PostMapping({"/api/v1/mentorship-sessions/{id}/feedback", "/api/mentorship-sessions/{id}/feedback", "/api/sessions/{id}/feedback"})
     public ResponseEntity<Void> leaveFeedback(
             @PathVariable Long id, 
             @Valid @RequestBody SessionFeedbackDTO feedbackDTO,

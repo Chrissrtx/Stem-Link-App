@@ -20,13 +20,13 @@ public class AvailabilityBlockController {
         this.availabilityBlockService = availabilityBlockService;
     }
 
-    @GetMapping("/api/mentors/{id}/availability")
+    @GetMapping({"/api/v1/mentors/{id}/availability", "/api/mentors/{id}/availability"})
     public ResponseEntity<List<AvailabilityBlockDTO>> getAvailability(@PathVariable Long id) {
         return ResponseEntity.ok(availabilityBlockService.getBlocksByMentor(id));
     }
 
     @Secured("ROLE_MENTOR")
-    @PostMapping("/api/mentors/me/availability")
+    @PostMapping({"/api/v1/mentors/me/availability", "/api/mentors/me/availability"})
     public ResponseEntity<AvailabilityBlockDTO> createBlock(
             @Valid @RequestBody AvailabilityBlockDTO dto,
             Principal principal) {
@@ -35,7 +35,7 @@ public class AvailabilityBlockController {
     }
 
     @Secured("ROLE_MENTOR")
-    @DeleteMapping("/api/mentors/me/availability/{id}")
+    @DeleteMapping({"/api/v1/mentors/me/availability/{id}", "/api/mentors/me/availability/{id}"})
     public ResponseEntity<Void> deleteBlock(@PathVariable Long id, Principal principal) {
         availabilityBlockService.deleteBlock(principal.getName(), id);
         return ResponseEntity.noContent().build();

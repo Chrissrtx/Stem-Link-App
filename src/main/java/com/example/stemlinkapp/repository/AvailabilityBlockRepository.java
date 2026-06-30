@@ -9,12 +9,20 @@ import org.springframework.data.repository.query.Param;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface AvailabilityBlockRepository extends JpaRepository<AvailabilityBlock, Long> {
 
     List<AvailabilityBlock> findByMentorProfile(MentorProfile mentorProfile);
 
     List<AvailabilityBlock> findByMentorProfileId(Long mentorProfileId);
+
+    Optional<AvailabilityBlock> findByMentorProfileIdAndDayOfWeekAndStartTimeAndEndTime(
+            Long mentorProfileId,
+            DayOfWeek dayOfWeek,
+            LocalTime startTime,
+            LocalTime endTime
+    );
 
     @Query("""
             SELECT COUNT(a) > 0 FROM AvailabilityBlock a

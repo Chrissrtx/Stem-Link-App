@@ -5,6 +5,9 @@ import com.example.stemlinkapp.dto.MentorProfileResponse;
 import com.example.stemlinkapp.dto.TechnicalSkillDTO;
 import com.example.stemlinkapp.service.MentorService;
 import com.example.stemlinkapp.service.TechnicalSkillService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +16,7 @@ import java.util.List;
 import java.security.Principal;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping({"/api/v1", "/api"})
 public class MentorController {
 
     private final MentorService mentorService;
@@ -37,10 +40,11 @@ public class MentorController {
     }
 
     @GetMapping("/mentors")
-    public ResponseEntity<List<MentorProfileResponse>> listMentors(
+    public ResponseEntity<Page<MentorProfileResponse>> listMentors(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) List<Long> skillIds) {
-        List<MentorProfileResponse> mentors = mentorService.filterMentors(name, skillIds);
+            @RequestParam(required = false) List<Long> skillIds,
+            @PageableDefault(size = 10) Pageable pageable) {
+        Page<MentorProfileResponse> mentors = mentorService.filterMentors(name, skillIds, pageable);
         return ResponseEntity.ok(mentors);
     }
 

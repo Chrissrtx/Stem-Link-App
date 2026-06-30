@@ -10,6 +10,7 @@ public class BookingResponse {
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
+    private String topic;
     private String status;
     private String studentName;
     private String studentEmail;

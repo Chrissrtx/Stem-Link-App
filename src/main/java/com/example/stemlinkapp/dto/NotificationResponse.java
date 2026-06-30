@@ -8,6 +8,6 @@ public class NotificationResponse {
     private Long id;
     private String title;
     private String message;
-    private boolean isRead;
+    private boolean read;
     private LocalDateTime createdAt;
 }

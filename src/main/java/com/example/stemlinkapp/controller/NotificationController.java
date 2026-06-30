@@ -2,14 +2,16 @@ package com.example.stemlinkapp.controller;
 
 import com.example.stemlinkapp.dto.NotificationResponse;
 import com.example.stemlinkapp.service.NotificationService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/notifications")
+@RequestMapping({"/api/v1/notifications", "/api/notifications"})
 public class NotificationController {
     private final NotificationService notificationService;
 
@@ -18,8 +20,10 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<NotificationResponse>> getMyNotifications(Principal principal) {
-        return ResponseEntity.ok(notificationService.getMyNotifications(principal.getName()));
+    public ResponseEntity<Page<NotificationResponse>> getMyNotifications(
+            Principal principal,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(notificationService.getMyNotifications(principal.getName(), pageable));
     }
 
     @PatchMapping("/{id}/read")

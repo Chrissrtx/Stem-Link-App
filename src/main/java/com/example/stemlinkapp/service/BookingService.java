@@ -15,8 +15,12 @@ import com.example.stemlinkapp.repository.MentorProfileRepository;
 import com.example.stemlinkapp.repository.UserRepository;
 import com.example.stemlinkapp.repository.MentorshipSessionRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.DayOfWeek;
 
 @Service
 public class BookingService {
@@ -59,18 +63,7 @@ public class BookingService {
             throw new InvalidOperationException("No puedes reservar una sesión contigo mismo");
         }
 
-        AvailabilityBlock block = availabilityBlockRepository.findById(request.getAvailabilityBlockId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Bloque no encontrado con id: " + request.getAvailabilityBlockId()));
-
-        if (!block.getMentorProfile().getId().equals(mentor.getId())) {
-            throw new InvalidOperationException("El bloque no pertenece al mentor indicado");
-        }
-
-        if (!request.getDate().getDayOfWeek().equals(block.getDayOfWeek())) {
-            throw new InvalidOperationException(
-                    "La fecha no corresponde al día del bloque: " + block.getDayOfWeek());
-        }
+        AvailabilityBlock block = resolveAvailabilityBlock(mentor, request);
 
         boolean conflict = bookingRepository.existsConflictingBooking(
                 mentor.getId(), request.getDate(), block.getStartTime(), block.getEndTime());
@@ -85,6 +78,7 @@ public class BookingService {
         booking.setDate(request.getDate());
         booking.setStartTime(block.getStartTime());
         booking.setEndTime(block.getEndTime());
+        booking.setTopic(normalizeTopic(request.getTopic(), mentor));
         booking.setStatus(BookingStatus.PENDING);
         booking.setCreatedAt(java.time.LocalDateTime.now());
 
@@ -119,7 +113,7 @@ public class BookingService {
                 // Crear la sesión real de mentoría
                 MentorshipSession session = new MentorshipSession();
                 session.setBooking(booking);
-                session.setTopic("Sesión de Mentoría STEM - " + booking.getMentor().getUser().getName());
+                session.setTopic(booking.getTopic());
                 session.setNotes("Sesión programada");
                 mentorshipSessionRepository.save(session);
             }
@@ -142,12 +136,81 @@ public class BookingService {
         return toResponse(bookingRepository.save(booking));
     }
 
+    @Transactional(readOnly = true)
+    public Page<BookingResponse> getBookings(String userEmail, String status, Pageable pageable) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + userEmail));
+
+        BookingStatus bookingStatus = parseStatus(status);
+        boolean mentorView = user.getRoles() != null && user.getRoles().contains("MENTOR");
+
+        Page<Booking> bookings = mentorView
+                ? bookingRepository.findMentorBookings(userEmail, bookingStatus, pageable)
+                : bookingRepository.findStudentBookings(userEmail, bookingStatus, pageable);
+
+        return bookings.map(this::toResponse);
+    }
+
+    private BookingStatus parseStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+
+        try {
+            return BookingStatus.valueOf(status.trim().toUpperCase());
+        } catch (IllegalArgumentException error) {
+            throw new InvalidOperationException("Estado inválido: " + status);
+        }
+    }
+
+    private AvailabilityBlock resolveAvailabilityBlock(MentorProfile mentor, BookingRequest request) {
+        if (request.getAvailabilityBlockId() != null) {
+            AvailabilityBlock block = availabilityBlockRepository.findById(request.getAvailabilityBlockId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Bloque no encontrado con id: " + request.getAvailabilityBlockId()));
+
+            validateBlockBelongsToMentorAndDate(mentor, request.getDate().getDayOfWeek(), block);
+            return block;
+        }
+
+        if (request.getStartTime() == null || request.getEndTime() == null) {
+            throw new InvalidOperationException("Debes indicar availabilityBlockId o un horario válido");
+        }
+
+        DayOfWeek dayOfWeek = request.getDate().getDayOfWeek();
+        return availabilityBlockRepository.findByMentorProfileIdAndDayOfWeekAndStartTimeAndEndTime(
+                        mentor.getId(), dayOfWeek, request.getStartTime(), request.getEndTime())
+                .map(block -> {
+                    validateBlockBelongsToMentorAndDate(mentor, dayOfWeek, block);
+                    return block;
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("No existe un bloque disponible para ese horario"));
+    }
+
+    private void validateBlockBelongsToMentorAndDate(MentorProfile mentor, DayOfWeek requestedDay, AvailabilityBlock block) {
+        if (!block.getMentorProfile().getId().equals(mentor.getId())) {
+            throw new InvalidOperationException("El bloque no pertenece al mentor indicado");
+        }
+
+        if (!requestedDay.equals(block.getDayOfWeek())) {
+            throw new InvalidOperationException("La fecha no corresponde al día del bloque: " + block.getDayOfWeek());
+        }
+    }
+
+    private String normalizeTopic(String topic, MentorProfile mentor) {
+        if (topic != null && !topic.isBlank()) {
+            return topic.trim();
+        }
+        return "Sesión de mentoría STEM con " + mentor.getUser().getName();
+    }
+
     private BookingResponse toResponse(Booking booking) {
         BookingResponse r = new BookingResponse();
         r.setId(booking.getId());
         r.setDate(booking.getDate());
         r.setStartTime(booking.getStartTime());
         r.setEndTime(booking.getEndTime());
+        r.setTopic(booking.getTopic());
         r.setStatus(booking.getStatus().name());
         r.setStudentName(booking.getStudent().getName());
         r.setStudentEmail(booking.getStudent().getEmail());

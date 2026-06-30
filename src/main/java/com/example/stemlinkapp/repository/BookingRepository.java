@@ -5,6 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.example.stemlinkapp.domain.BookingStatus;
 
 import java.time.LocalDate;
@@ -47,4 +50,28 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByStudentEmailOrderByDateDesc(String email);
 
     List<Booking> findByMentorUserEmailOrderByDateDesc(String email);
+
+    @Query("""
+            SELECT b FROM Booking b
+            WHERE b.student.email = :email
+              AND (:status IS NULL OR b.status = :status)
+            ORDER BY b.date DESC, b.startTime DESC, b.createdAt DESC
+            """)
+    Page<Booking> findStudentBookings(
+            @Param("email") String email,
+            @Param("status") BookingStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT b FROM Booking b
+            WHERE b.mentor.user.email = :email
+              AND (:status IS NULL OR b.status = :status)
+            ORDER BY b.date DESC, b.startTime DESC, b.createdAt DESC
+            """)
+    Page<Booking> findMentorBookings(
+            @Param("email") String email,
+            @Param("status") BookingStatus status,
+            Pageable pageable
+    );
 }

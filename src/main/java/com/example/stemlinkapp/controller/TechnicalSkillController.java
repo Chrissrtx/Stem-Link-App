@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/technical-skills")
+@RequestMapping({"/api/v1/technical-skills", "/api/technical-skills"})
 public class TechnicalSkillController {
 
     private final TechnicalSkillService technicalSkillService;
