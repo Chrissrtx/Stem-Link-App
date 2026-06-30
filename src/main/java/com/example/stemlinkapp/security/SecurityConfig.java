@@ -82,6 +82,7 @@ public class SecurityConfig {
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/health", "/api/health").permitAll()
                         .requestMatchers("/api/v1/auth/**", "/api/auth/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/mentors/**", "/api/mentors/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/technical-skills/**", "/api/technical-skills/**", "/api/tags/**").permitAll()

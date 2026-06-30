@@ -13,6 +13,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -75,22 +78,24 @@ class NotificationServiceTest {
 
     @Test
     void shouldReturnNotificationsWhenUserHasSome() {
-        when(notificationRepository.findByUserEmailOrderByCreatedAtDesc(ownerEmail))
-                .thenReturn(List.of(testNotification));
+        PageRequest pageable = PageRequest.of(0, 10);
+        when(notificationRepository.findByUserEmailOrderByCreatedAtDesc(ownerEmail, pageable))
+                .thenReturn(new PageImpl<>(List.of(testNotification), pageable, 1));
         when(modelMapper.map(any(), eq(NotificationResponse.class))).thenReturn(new NotificationResponse());
 
-        List<NotificationResponse> result = notificationService.getMyNotifications(ownerEmail);
+        Page<NotificationResponse> result = notificationService.getMyNotifications(ownerEmail, pageable);
 
         assertThat(result).hasSize(1);
-        verify(notificationRepository).findByUserEmailOrderByCreatedAtDesc(ownerEmail);
+        verify(notificationRepository).findByUserEmailOrderByCreatedAtDesc(ownerEmail, pageable);
     }
 
     @Test
     void shouldReturnEmptyListWhenUserHasNoNotifications() {
-        when(notificationRepository.findByUserEmailOrderByCreatedAtDesc(anyString()))
-                .thenReturn(List.of());
+        PageRequest pageable = PageRequest.of(0, 10);
+        when(notificationRepository.findByUserEmailOrderByCreatedAtDesc(anyString(), eq(pageable)))
+                .thenReturn(Page.empty(pageable));
 
-        List<NotificationResponse> result = notificationService.getMyNotifications(ownerEmail);
+        Page<NotificationResponse> result = notificationService.getMyNotifications(ownerEmail, pageable);
 
         assertThat(result).isEmpty();
     }

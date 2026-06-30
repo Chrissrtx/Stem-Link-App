@@ -8,11 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -39,7 +37,7 @@ class MentorControllerTest {
     @Test
     @WithMockUser
     void shouldReturnOkWhenListMentors() throws Exception {
-        when(mentorService.filterMentors(any(), any())).thenReturn(Collections.emptyList());
+        when(mentorService.filterMentors(any(), any(), any())).thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/v1/mentors"))
                 .andExpect(status().isOk())
@@ -59,15 +57,17 @@ class MentorControllerTest {
     @Test
     @WithMockUser
     void shouldReturnOkWhenFilterByName() throws Exception {
-        when(mentorService.filterMentors("Java", null)).thenReturn(List.of());
+        when(mentorService.filterMentors(any(), any(), any())).thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/v1/mentors").param("name", "Java"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void shouldReturnUnauthorizedWhenNoAuthentication() throws Exception {
+    void shouldReturnOkWhenNoAuthentication() throws Exception {
+        when(mentorService.filterMentors(any(), any(), any())).thenReturn(Page.empty());
+
         mockMvc.perform(get("/api/v1/mentors"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk());
     }
 }

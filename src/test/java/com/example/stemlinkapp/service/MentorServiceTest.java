@@ -8,6 +8,7 @@ import com.example.stemlinkapp.dto.MentorProfileResponse;
 import com.example.stemlinkapp.exception.SkillNotFoundException;
 import com.example.stemlinkapp.repository.MentorProfileRepository;
 import com.example.stemlinkapp.repository.TechnicalSkillRepository;
+import com.example.stemlinkapp.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +33,7 @@ class MentorServiceTest {
 
     @Mock private MentorProfileRepository mentorProfileRepository;
     @Mock private TechnicalSkillRepository technicalSkillRepository;
+    @Mock private UserRepository userRepository;
     @Mock private ModelMapper modelMapper;
 
     @InjectMocks
@@ -99,20 +104,24 @@ class MentorServiceTest {
 
     @Test
     void shouldReturnMentorsWhenFilterByNameMatches() {
-        when(mentorProfileRepository.findAll()).thenReturn(List.of(mentorProfile));
+        PageRequest pageable = PageRequest.of(0, 10);
+        when(mentorProfileRepository.searchMentors(true, "Mentor", false, List.of(""), pageable))
+                .thenReturn(new PageImpl<>(List.of(mentorProfile), pageable, 1));
         when(modelMapper.map(any(), eq(MentorProfileResponse.class))).thenReturn(new MentorProfileResponse());
 
-        List<MentorProfileResponse> result = mentorService.filterMentors("Mentor", null);
+        Page<MentorProfileResponse> result = mentorService.filterMentors("Mentor", null, pageable);
 
         assertThat(result).isNotEmpty();
-        verify(mentorProfileRepository).findAll();
+        verify(mentorProfileRepository).searchMentors(true, "Mentor", false, List.of(""), pageable);
     }
 
     @Test
     void shouldReturnEmptyWhenNoMentorsMatchFilter() {
-        when(mentorProfileRepository.findAll()).thenReturn(List.of(mentorProfile));
+        PageRequest pageable = PageRequest.of(0, 10);
+        when(mentorProfileRepository.searchMentors(true, "NonExistentName", false, List.of(""), pageable))
+                .thenReturn(Page.empty(pageable));
 
-        List<MentorProfileResponse> result = mentorService.filterMentors("NonExistentName", null);
+        Page<MentorProfileResponse> result = mentorService.filterMentors("NonExistentName", null, pageable);
 
         assertThat(result).isEmpty();
     }
