@@ -27,6 +27,12 @@ public class MentorController {
         this.technicalSkillService = technicalSkillService;
     }
 
+    @GetMapping("/users/me/profile")
+    public ResponseEntity<MentorProfileResponse> getCurrentMentorProfile(Principal principal) {
+        MentorProfileResponse response = mentorService.getCurrentMentorProfile(principal.getName());
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/users/me/profile")
     public ResponseEntity<MentorProfileResponse> updateMentorProfile(@RequestBody MentorProfileRequest request, Principal principal) {
         MentorProfileResponse response = mentorService.updateMentorProfile(principal.getName(), request);

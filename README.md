@@ -81,16 +81,28 @@ El sistema se basa en un modelo relacional sólido:
 
 ### Pasos para iniciar con Docker
 1. Clonar el repositorio.
-2. Navegar a la carpeta `Stem Link App/StemLinkApp`.
+2. Navegar a la raíz del backend canónico: `Stem-Link-App`.
 3. Ejecutar el comando:
    ```bash
    docker-compose up --build
    ```
 4. La API estará disponible en `http://localhost:8080`.
-5. La base de datos PostgreSQL estará accesible en el puerto `5433` (según configuración del compose).
+5. La base de datos PostgreSQL estará accesible en el puerto `5435`.
 
 ### Configuración de Variables de Entorno
 Asegúrese de configurar el archivo `.env` con las credenciales de Mailtrap para las notificaciones por email y los datos de conexión a la base de datos.
+
+### Datos demo disponibles
+Si la base está vacía al levantar la app, se cargan usuarios y reservas demo automáticamente.
+
+**Mentores**
+* `carlos.mentor@stemlink.com` / `Mentor@123`
+* `ana.mentor@stemlink.com` / `Mentor@123`
+* `diego.mentor@stemlink.com` / `Mentor@123`
+
+**Estudiantes**
+* `lucia.student@stemlink.com` / `Student@123`
+* `miguel.student@stemlink.com` / `Student@123`
 
 ## 6. Testing y Manejo de Errores
 

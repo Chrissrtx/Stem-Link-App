@@ -75,6 +75,7 @@ public class MentorServiceImpl implements MentorService {
     @Override
     @Transactional(readOnly = true)
     public Page<MentorProfileResponse> filterMentors(String name, List<Long> skillIds, Pageable pageable) {
+        boolean filterByName = name != null && !name.isBlank();
         boolean filterBySkills = skillIds != null && !skillIds.isEmpty();
 
         List<String> skillNames = filterBySkills
@@ -84,10 +85,10 @@ public class MentorServiceImpl implements MentorService {
                         .toList()
                 : List.of("");
 
-        String nameFilter = (name != null && !name.isBlank()) ? name : null;
+        String nameFilter = filterByName ? name : "";
 
         Page<MentorProfile> page = mentorProfileRepository
-                .searchMentors(nameFilter, filterBySkills, skillNames, pageable);
+                .searchMentors(filterByName, nameFilter, filterBySkills, skillNames, pageable);
 
         return page.map(this::toResponse);
     }

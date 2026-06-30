@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface MentorService {
+    MentorProfileResponse getCurrentMentorProfile(String email);
     MentorProfileResponse updateMentorProfile(String email, MentorProfileRequest request);
     MentorProfileResponse associateSkillsToMentor(String email, List<Long> skillIds);
     Page<MentorProfileResponse> filterMentors(String name, List<Long> skillIds, Pageable pageable);
