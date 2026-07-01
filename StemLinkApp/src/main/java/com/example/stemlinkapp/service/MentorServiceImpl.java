@@ -39,6 +39,7 @@ public class MentorServiceImpl implements MentorService {
         MentorProfileResponse response = modelMapper.map(mentor, MentorProfileResponse.class);
         if (mentor.getUser() != null) {
             response.setName(mentor.getUser().getName());
+            response.setPhotoUrl(mentor.getUser().getPhotoUrl());
         }
         return response;
     }

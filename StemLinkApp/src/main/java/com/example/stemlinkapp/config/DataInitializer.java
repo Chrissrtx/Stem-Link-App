@@ -23,8 +23,11 @@ public class DataInitializer {
             BookingRepository bookingRepo,
             MentorshipSessionRepository sessionRepo,
             PasswordEncoder encoder
-    ) {
+        ) {
         return args -> {
+            removeLegacyMentor(mentorProfileRepo, 1L, "Codex Mentor");
+            removeLegacyMentor(mentorProfileRepo, 2L, "Osmar Vilchez");
+
             if (userRepo.count() > 0) return;
 
             // Skills
@@ -71,6 +74,15 @@ public class DataInitializer {
             createSession(sessionRepo, b1, "Introducción a Spring Boot y arquitectura REST");
             createSession(sessionRepo, b3, "React desde cero: componentes, hooks y estado");
         };
+    }
+
+    private void removeLegacyMentor(MentorProfileRepository repository, Long profileId, String expectedName) {
+        repository.findById(profileId).ifPresent(profile -> {
+            User user = profile.getUser();
+            if (user != null && expectedName.equals(user.getName())) {
+                repository.delete(profile);
+            }
+        });
     }
 
     private TechnicalSkill skill(TechnicalSkillRepository repo, String name, String desc) {

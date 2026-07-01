@@ -10,5 +10,6 @@ public class MentorProfileResponse {
     private String bio;
     private String videoCallUrl;
     private String linkedinUrl;
+    private String photoUrl;
     private List<TechnicalSkillDTO> skills;
 }

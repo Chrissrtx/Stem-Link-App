@@ -108,7 +108,7 @@ public class MentorServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<MentorProfile> mentorPage = new PageImpl<>(List.of(mentorProfile), pageable, 1);
 
-        when(mentorProfileRepository.searchMentors(any(), anyBoolean(), anyList(), any(Pageable.class)))
+        when(mentorProfileRepository.searchMentors(anyBoolean(), anyString(), anyBoolean(), anyList(), any(Pageable.class)))
                 .thenReturn(mentorPage);
         when(modelMapper.map(any(), eq(MentorProfileResponse.class))).thenReturn(new MentorProfileResponse());
 
@@ -117,6 +117,6 @@ public class MentorServiceTest {
         assertThat(result.getContent()).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(1);
         verify(mentorProfileRepository, times(1))
-                .searchMentors(any(), anyBoolean(), anyList(), any(Pageable.class));
+                .searchMentors(anyBoolean(), anyString(), anyBoolean(), anyList(), any(Pageable.class));
     }
 }

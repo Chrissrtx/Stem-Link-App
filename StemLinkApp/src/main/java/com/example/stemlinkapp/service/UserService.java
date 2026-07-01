@@ -112,6 +112,26 @@ public class UserService {
     }
 
     public UserResponse getCurrentUser() {
+        return toUserResponse(getAuthenticatedUser());
+    }
+
+    @Transactional
+    public UserResponse updateCurrentUserPhoto(String photoUrl) {
+        if (photoUrl != null) {
+            if (!photoUrl.startsWith("data:image/")) {
+                throw new IllegalArgumentException("La foto debe ser una imagen válida");
+            }
+            if (photoUrl.length() > 500_000) {
+                throw new IllegalArgumentException("La foto excede el tamaño permitido");
+            }
+        }
+
+        User user = getAuthenticatedUser();
+        user.setPhotoUrl(photoUrl);
+        return toUserResponse(userRepository.save(user));
+    }
+
+    private User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || authentication.getName() == null) {
@@ -120,10 +140,8 @@ public class UserService {
 
         String email = authentication.getName();
 
-        User user = userRepository.findByEmail(email)
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
-
-        return toUserResponse(user);
     }
 
     private UserResponse toUserResponse(User user) {
