@@ -41,23 +41,24 @@ public class MentorServiceImpl implements MentorService {
         MentorProfileResponse response = modelMapper.map(mentor, MentorProfileResponse.class);
         if (mentor.getUser() != null) {
             response.setName(mentor.getUser().getName());
+            response.setPhotoUrl(mentor.getUser().getPhotoUrl());
         }
         return response;
     }
 
     private MentorProfile getOrCreateMentorProfile(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(email));
-
-        boolean isMentor = user.getRoles() != null && user.getRoles().stream()
-                .anyMatch(role -> "MENTOR".equalsIgnoreCase(role));
-
-        if (!isMentor) {
-            throw new IllegalStateException("El usuario no tiene perfil de mentor");
-        }
-
         return mentorProfileRepository.findByUserEmail(email)
                 .orElseGet(() -> {
+                    User user = userRepository.findByEmail(email)
+                            .orElseThrow(() -> new UserNotFoundException(email));
+
+                    boolean isMentor = user.getRoles() != null && user.getRoles().stream()
+                            .anyMatch(role -> "MENTOR".equalsIgnoreCase(role));
+
+                    if (!isMentor) {
+                        throw new IllegalStateException("El usuario no tiene perfil de mentor");
+                    }
+
                     MentorProfile mentor = new MentorProfile();
                     mentor.setUser(user);
                     mentor.setBio("¡Hola! Soy un mentor en STEM Link.");
