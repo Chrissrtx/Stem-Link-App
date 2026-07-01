@@ -31,14 +31,16 @@ public interface MentorProfileRepository extends JpaRepository<MentorProfile, Lo
      */
     @Query(value = """
             SELECT m FROM MentorProfile m
-            WHERE (:filterByName = false OR LOWER(m.user.name) LIKE LOWER(CONCAT('%', :name, '%')))
+            WHERE m.id NOT IN (1, 2)
+              AND (:filterByName = false OR LOWER(m.user.name) LIKE LOWER(CONCAT('%', :name, '%')))
               AND (:filterBySkills = false OR EXISTS (
                     SELECT 1 FROM m.skills s WHERE LOWER(s.name) IN :skillNames
               ))
             """,
             countQuery = """
             SELECT COUNT(m) FROM MentorProfile m
-            WHERE (:filterByName = false OR LOWER(m.user.name) LIKE LOWER(CONCAT('%', :name, '%')))
+            WHERE m.id NOT IN (1, 2)
+              AND (:filterByName = false OR LOWER(m.user.name) LIKE LOWER(CONCAT('%', :name, '%')))
               AND (:filterBySkills = false OR EXISTS (
                     SELECT 1 FROM m.skills s WHERE LOWER(s.name) IN :skillNames
               ))

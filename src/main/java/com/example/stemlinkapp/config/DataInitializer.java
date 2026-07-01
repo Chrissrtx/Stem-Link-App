@@ -41,9 +41,6 @@ public class DataInitializer {
             PasswordEncoder passwordEncoder
         ) {
         return args -> {
-            removeLegacyMentor(mentorProfileRepository, 1L, "Codex Mentor");
-            removeLegacyMentor(mentorProfileRepository, 2L, "Osmar Vilchez");
-
             TechnicalSkill java = ensureSkill(technicalSkillRepository, "Java", "Programación orientada a objetos con Java y Spring.");
             TechnicalSkill python = ensureSkill(technicalSkillRepository, "Python", "Automatización, ciencia de datos e IA.");
             TechnicalSkill react = ensureSkill(technicalSkillRepository, "React", "Interfaces modernas con componentes y hooks.");
@@ -121,19 +118,6 @@ public class DataInitializer {
                 createNotification(notificationRepository, studentMiguel, "Reserva cancelada", "Una de tus reservas fue cancelada y requiere reprogramación.", false);
             }
         };
-    }
-
-    private void removeLegacyMentor(
-            MentorProfileRepository mentorProfileRepository,
-            Long profileId,
-            String expectedName
-    ) {
-        mentorProfileRepository.findById(profileId).ifPresent(profile -> {
-            User user = profile.getUser();
-            if (user != null && expectedName.equals(user.getName())) {
-                mentorProfileRepository.delete(profile);
-            }
-        });
     }
 
     private TechnicalSkill ensureSkill(TechnicalSkillRepository repository, String name, String description) {
